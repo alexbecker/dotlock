@@ -1,7 +1,10 @@
 from typing import List
 import json
 
-from package.resolve import Requirement, get_candidate_tree, flatten_candidate_tree
+from packaging.specifiers import SpecifierSet
+from packaging.utils import canonicalize_name
+
+from package.resolve import RequirementInfo, Requirement, resolve_requirements_list
 
 
 class PackageJSON:
@@ -14,17 +17,24 @@ class PackageJSON:
     def load(file_path: str):
         with open(file_path) as fp:
             contents = json.load(fp)
+
         return PackageJSON(
             python_version=contents['python'],
             sources=contents['sources'],
             default=[
-                Requirement(name, version if version != '*' else None, marker=None)
-                for name, version in contents['default'].items()
+                Requirement(
+                    info=RequirementInfo(
+                        name=canonicalize_name(name),
+                        specifier=SpecifierSet(specifier) if specifier != '*' else None,
+                        marker=None,
+                    ),
+                    parent=None,
+                ) for name, specifier in contents['default'].items()
             ],
         )
 
     async def resolve_default(self):
-        return await get_candidate_tree(
+        return await resolve_requirements_list(
             package_types=['bdist_wheel', 'sdist'],  # FIXME: this is pretty arbitrary
             python_version=self.python_version,
             extra='',

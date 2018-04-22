@@ -9,9 +9,8 @@ class NotFound(PackageResolutionError):
 
 
 class NoMatchingCandidateError(PackageResolutionError):
-    def __init__(self, name, specifier_set):
-        self.name = name
-        self.specifier_set = specifier_set
+    def __init__(self, requirement_info):
+        self.requirement_info = requirement_info
 
 
 class CircularDependencyError(PackageResolutionError):

@@ -5,6 +5,7 @@
     ],
     "default": {
         "aiohttp": ">=3.1",
-        "packaging": ">=17.1"
+        "packaging": ">=17.1",
+        "pyparsing": "<2.1"
     }
 }

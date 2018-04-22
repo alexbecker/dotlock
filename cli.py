@@ -3,7 +3,7 @@ import asyncio
 import sys
 
 from package.package_json import PackageJSON
-from package.resolve import print_candidate_tree
+from package.graph import graph_resolution
 
 
 base_parser = argparse.ArgumentParser(description='A Python package management utility.')
@@ -22,5 +22,5 @@ if __name__ == '__main__':
 
     if command == 'graph':
         future = package_json.resolve_default()
-        tree = loop.run_until_complete(future)
-        print_candidate_tree(tree)
+        loop.run_until_complete(future)
+        graph_resolution(package_json.default)
