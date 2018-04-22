@@ -1,0 +1,10 @@
+{
+    "python": ">=3.6",
+    "sources": [
+        "https://pypi.org/pypi"
+    ],
+    "default": {
+        "aiohttp": "~3.1",
+        "packaging": "~17.1"
+    }
+}
