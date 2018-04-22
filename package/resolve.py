@@ -40,7 +40,7 @@ class Candidate:
         self.sha256 = sha256
 
     def __repr__(self):
-        return f'<Candidate {self.name}: "{self.version}">'
+        return f'<Candidate {self.name}: "{self.version}" [{self.package_type}]>'
 
     def __hash__(self):
         return hash(self.sha256)
@@ -48,9 +48,7 @@ class Candidate:
     def __lt__(self, other):
         if not isinstance(other, Candidate):
             raise TypeError()
-        if self.name != other.name:
-            return self.name < other.name
-        return self.version < other.version
+        return (self.name, self.version, self.package_type) < (other.name, other.version, other.package_type)
 
 
 def parse_requires_dist(requirement_lines: Optional[List[str]]) -> List[Requirement]:
@@ -81,6 +79,7 @@ def parse_requires_dist(requirement_lines: Optional[List[str]]) -> List[Requirem
 async def _get_top_candidate_tree(
         package_types: str,
         python_version: str,
+        extra: Optional[str],
         sources: List[str],
         requirements: List[Requirement],
         parents: List[Requirement],
@@ -93,8 +92,11 @@ async def _get_top_candidate_tree(
             if requirement.name in parents:
                 raise CircularDependencyError(parents + [requirement])
 
-            if requirement.marker:
-                continue    # FIXME: handle markers
+            if requirement.marker and not requirement.marker.evaluate(environment={
+                'python_version': python_version,
+                'extra': extra,
+            }):
+                continue
 
             existing_candidate = candidates_seen.get(requirement.name)
             if existing_candidate:
@@ -104,7 +106,6 @@ async def _get_top_candidate_tree(
                     # FIXME: handle single-pass failures
                     raise Exception(f'Single pass failed on {requirement} (rejected exisiting {existing_candidate})')
 
-            print(requirement)
             source, base_metadata = await get_source_and_base_metadata(sources, session, requirement.name)
 
             candidates = []
@@ -142,6 +143,7 @@ async def _get_top_candidate_tree(
             candidate_tree[requirement][candidate] = await _get_top_candidate_tree(
                 package_types=package_types,
                 python_version=python_version,
+                extra=extra,
                 sources=sources,
                 requirements=candidate_requirements,
                 parents=parents + [requirement],
@@ -154,12 +156,14 @@ async def _get_top_candidate_tree(
 async def get_top_candidate_tree(
         package_types: str,
         python_version: str,
+        extra: str,
         sources: List[str],
         requirements: List[Requirement],
 ) -> dict:
     return await _get_top_candidate_tree(
         package_types=package_types,
         python_version=python_version,
+        extra=extra,
         sources=sources,
         requirements=requirements,
         parents=[],
