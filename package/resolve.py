@@ -76,8 +76,8 @@ def parse_requires_dist(requirement_lines: Optional[List[str]]) -> List[Requirem
     return requirements
 
 
-async def _get_top_candidate_tree(
-        package_types: str,
+async def _get_candidate_tree(
+        package_types: List[str],
         python_version: str,
         extra: Optional[str],
         sources: List[str],
@@ -140,7 +140,7 @@ async def _get_top_candidate_tree(
                 metadata = await get_version_metadata(source, session, candidate.name, candidate.version)
 
             candidate_requirements = parse_requires_dist(metadata['info']['requires_dist'])
-            candidate_tree[requirement][candidate] = await _get_top_candidate_tree(
+            candidate_tree[requirement][candidate] = await _get_candidate_tree(
                 package_types=package_types,
                 python_version=python_version,
                 extra=extra,
@@ -153,14 +153,14 @@ async def _get_top_candidate_tree(
     return candidate_tree
 
 
-async def get_top_candidate_tree(
-        package_types: str,
+async def get_candidate_tree(
+        package_types: List[str],
         python_version: str,
         extra: str,
         sources: List[str],
         requirements: List[Requirement],
 ) -> dict:
-    return await _get_top_candidate_tree(
+    return await _get_candidate_tree(
         package_types=package_types,
         python_version=python_version,
         extra=extra,
@@ -178,3 +178,11 @@ def flatten_candidate_tree(candidate_tree: Dict[Requirement, dict]) -> List[Cand
             flat.append(candidate)
             flat.extend(flatten_candidate_tree(requirements))
     return flat
+
+
+def print_candidate_tree(candidate_tree: Dict[Requirement, dict], offset=0) -> None:
+    for requirement, candidates in candidate_tree.items():
+        print(offset * ' ' + repr(requirement))
+        for candidate, requirements in candidates.items():
+            print((offset + 2) * ' ' + repr(candidate))
+            print_candidate_tree(requirements, offset + 4)
