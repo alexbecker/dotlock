@@ -4,7 +4,7 @@ import json
 from packaging.specifiers import SpecifierSet
 from packaging.utils import canonicalize_name
 
-from package.resolve import RequirementInfo, Requirement, resolve_requirements_list
+from package.resolve import PackageType, RequirementInfo, Requirement, resolve_requirements_list
 
 
 class PackageJSON:
@@ -26,6 +26,7 @@ class PackageJSON:
                     info=RequirementInfo(
                         name=canonicalize_name(name),
                         specifier=SpecifierSet(specifier) if specifier != '*' else None,
+                        extra=None,
                         marker=None,
                     ),
                     parent=None,
@@ -35,9 +36,8 @@ class PackageJSON:
 
     async def resolve_default(self):
         return await resolve_requirements_list(
-            package_types=['bdist_wheel', 'sdist'],  # FIXME: this is pretty arbitrary
+            package_types=[PackageType.bdist_wheel, PackageType.sdist],  # FIXME: this is pretty arbitrary
             python_version=self.python_version,
-            extra='',
             sources=self.sources,
             requirements=self.default,
         )

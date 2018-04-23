@@ -1,6 +1,7 @@
 """Code for resolving requirements into concrete versions."""
 from collections import namedtuple
 from typing import List, Optional, Iterable
+from enum import IntEnum, auto
 import asyncio
 import logging
 import re
@@ -18,17 +19,29 @@ from package.exceptions import NoMatchingCandidateError, CircularDependencyError
 logging.getLogger().setLevel(logging.DEBUG)
 
 
+class PackageType(IntEnum):
+    bdist_wininst = auto()
+    bdist_msi = auto()
+    bdist_egg = auto()
+    sdist = auto()
+    bdist_rpm = auto()
+    bdist_wheel = auto()
+
+
 class RequirementInfo(namedtuple(
         '_RequirementInfo',
-        ('name', 'specifier', 'marker'),
+        ('name', 'specifier', 'extra', 'marker'),
     )):
     def __str__(self):
+        result = self.name
+        if self.extra:
+            result += f'[{self.extra}]'
         specifier_str = str(self.specifier) if self.specifier else '*'
         if self.marker:
             specifier_str += f'; {self.marker}'
         if specifier_str:
-            return f'{self.name} ({specifier_str})'
-        return self.name
+            result += f' ({specifier_str})'
+        return result
 
 
 CandidateInfo = namedtuple(
@@ -49,7 +62,7 @@ class Requirement:
 
     async def set_candidates(
             self,
-            package_types: List[str],
+            package_types: List[PackageType],
             sources: List[str],
             session: ClientSession,
     ) -> None:
@@ -67,12 +80,13 @@ class Requirement:
                 if self.info.specifier and not self.info.specifier.contains(version):
                     continue
                 for distribution in distributions:
-                    if distribution['packagetype'] in package_types:
+                    package_type = PackageType[distribution['packagetype']]
+                    if package_type in package_types:
                         sha256 = distribution['digests']['sha256']
                         candidate_info_cache[self.info].append(CandidateInfo(
                             name=self.info.name,
                             version=version,
-                            package_type=distribution['packagetype'],
+                            package_type=package_type,
                             python_version=distribution['python_version'],
                             source=source,
                             sha256=sha256,
@@ -95,7 +109,6 @@ class Candidate:
     async def set_requirements(
             self,
             python_version: str,
-            extra: str,
             session: ClientSession,
     ):
         if self.info not in requirement_info_cache:
@@ -106,7 +119,7 @@ class Candidate:
         for requirement_info in requirement_info_cache[self.info]:
             if requirement_info.marker and not requirement_info.marker.evaluate(environment={
                 'python_version': python_version,
-                'extra': extra,
+                'extra': requirement_info.extra,
             }):
                 logging.debug('Skipping %r because marker does not match environment.', requirement_info)
                 continue
@@ -134,15 +147,21 @@ def parse_requires_dist(requirement_lines: Optional[List[str]]) -> List[Requirem
         else:
             marker = None
 
-        specifier_match = re.match(r'(?P<name>[a-zA-Z\-_0-9]+) \((?P<specifier>.*)\)', line)
-        if specifier_match:
-            name = canonicalize_name(specifier_match.group('name'))
-            specifier = SpecifierSet(specifier_match.group('specifier'))
+        if ' ' in line:
+            line, specifier = line.split(' ')
+            specifier = SpecifierSet(specifier.strip('()'))
         else:
-            name = canonicalize_name(line)
             specifier = None
 
-        requirements.append(RequirementInfo(name, specifier, marker))
+        if '[' in line:
+            name, extra = line.split('[')
+            extra = extra.rstrip(']')
+        else:
+            name = line
+            extra = None
+
+        name = canonicalize_name(name)
+        requirements.append(RequirementInfo(name, specifier, extra, marker))
 
     return requirements
 
@@ -166,9 +185,8 @@ def _iter_live_candidates(base_requirements: Iterable[Requirement], name: str) -
 
 
 async def _resolve_requirement_list(
-        package_types: List[str],
+        package_types: List[PackageType],
         python_version: str,
-        extra: Optional[str],
         sources: List[str],
         session: ClientSession,
         base_requirements: List[Requirement],
@@ -186,7 +204,7 @@ async def _resolve_requirement_list(
             live_candidate_infos = {c.info for c in live_candidates}
             assert len(live_candidate_infos) == 1
             live_candidate_info = list(live_candidate_infos)[0]
-            if requirement.info.specifier.contains(live_candidate_info.version):
+            if requirement.info.specifier is None or requirement.info.specifier.contains(live_candidate_info.version):
                 logging.debug('Existing %r satisfies new %r.', live_candidate_info, requirement.info)
                 candidate_info = live_candidate_info
             else:
@@ -211,13 +229,11 @@ async def _resolve_requirement_list(
                     # Almost all from cache
                     await new_candidate.set_requirements(
                         python_version=python_version,
-                        extra=extra,
                         session=session,
                     )
                     await _resolve_requirement_list(
                         package_types=package_types,
                         python_version=python_version,
-                        extra=extra,
                         sources=sources,
                         session=session,
                         base_requirements=base_requirements,
@@ -231,13 +247,11 @@ async def _resolve_requirement_list(
         candidate.live = True
         await candidate.set_requirements(
             python_version=python_version,
-            extra=extra,
             session=session,
         )
         await _resolve_requirement_list(
             package_types=package_types,
             python_version=python_version,
-            extra=extra,
             sources=sources,
             session=session,
             base_requirements=base_requirements,
@@ -246,9 +260,8 @@ async def _resolve_requirement_list(
 
 
 async def resolve_requirements_list(
-        package_types: List[str],
+        package_types: List[PackageType],
         python_version: str,
-        extra: str,
         sources: List[str],
         requirements: List[Requirement],
 ) -> None:
@@ -256,7 +269,6 @@ async def resolve_requirements_list(
         await _resolve_requirement_list(
             package_types=package_types,
             python_version=python_version,
-            extra=extra,
             sources=sources,
             session=session,
             base_requirements=requirements,
