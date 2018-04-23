@@ -45,7 +45,7 @@ class RequirementInfo(namedtuple(
 
 CandidateInfo = namedtuple(
     'CandidateInfo',
-    ('name', 'version', 'package_type', 'python_version', 'source', 'sha256')
+    ('name', 'version', 'package_type', 'source', 'sha256')
 )
 
 
@@ -86,7 +86,6 @@ class Requirement:
                             name=self.info.name,
                             version=version,
                             package_type=package_type,
-                            python_version=distribution['python_version'],
                             source=source,
                             sha256=sha256,
                         ))
