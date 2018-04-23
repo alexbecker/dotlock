@@ -1,6 +1,6 @@
 """Code for resolving requirements into concrete versions."""
 from collections import namedtuple
-from typing import List, Optional, Iterable
+from typing import List, Optional, Iterable, Set
 from enum import IntEnum, auto
 import logging
 import asyncio
@@ -73,7 +73,7 @@ class Requirement:
                 try:
                     version = Version(version_str)
                 except InvalidVersion:
-                    logger.warning('Invalid version for %r: %s', self.info, version_str)
+                    logger.info('Invalid version for %r: %s', self.info, version_str)
                     continue  # Skip any candidate without a valid version.
 
                 if self.info.specifier and not self.info.specifier.contains(version):
@@ -272,3 +272,16 @@ async def resolve_requirements_list(
             base_requirements=requirements,
             requirements=requirements,
         )
+
+
+def _iter_live_candidate_info(requirements: Iterable[Requirement], seen: Set[CandidateInfo]) -> Iterable[CandidateInfo]:
+    for requirement in requirements:
+        for candidate in requirement.candidates.values():
+            if candidate.live and candidate.info not in seen:
+                seen.add(candidate.info)
+                yield candidate.info
+                yield from _iter_live_candidate_info(candidate.requirements.values(), seen)
+
+
+def candidate_info_topo_order(requirements: List[Requirement]) -> List[CandidateInfo]:
+    return list(reversed(list(_iter_live_candidate_info(requirements, set()))))
