@@ -2,9 +2,8 @@
 from collections import namedtuple
 from typing import List, Optional, Iterable
 from enum import IntEnum, auto
-import asyncio
 import logging
-import re
+import asyncio
 
 from aiohttp import ClientSession
 from packaging.utils import canonicalize_name
@@ -16,7 +15,7 @@ from package.api_requests import get_source_and_base_metadata, get_version_metad
 from package.exceptions import NoMatchingCandidateError, CircularDependencyError
 
 
-logging.getLogger().setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class PackageType(IntEnum):
@@ -74,7 +73,7 @@ class Requirement:
                 try:
                     version = Version(version_str)
                 except InvalidVersion:
-                    logging.warning('Invalid version for %r: %s', self.info, version_str)
+                    logger.warning('Invalid version for %r: %s', self.info, version_str)
                     continue  # Skip any candidate without a valid version.
 
                 if self.info.specifier and not self.info.specifier.contains(version):
@@ -121,7 +120,7 @@ class Candidate:
                 'python_version': python_version,
                 'extra': requirement_info.extra,
             }):
-                logging.debug('Skipping %r because marker does not match environment.', requirement_info)
+                logger.debug('Skipping %r because marker does not match environment.', requirement_info)
                 continue
 
             requirement = Requirement(requirement_info, self.requirement)
@@ -205,10 +204,10 @@ async def _resolve_requirement_list(
             assert len(live_candidate_infos) == 1
             live_candidate_info = list(live_candidate_infos)[0]
             if requirement.info.specifier is None or requirement.info.specifier.contains(live_candidate_info.version):
-                logging.debug('Existing %r satisfies new %r.', live_candidate_info, requirement.info)
+                logger.debug('Existing %r satisfies new %r.', live_candidate_info, requirement.info)
                 candidate_info = live_candidate_info
             else:
-                logging.debug('Existing %r does not satisfy new %r, attempting to resolve.',
+                logger.debug('Existing %r does not satisfy new %r, attempting to resolve.',
                               live_candidate_info, requirement)
                 specifier = requirement.info.specifier
                 for s in _iter_live_specifiers(base_requirements, requirement.info.name):
@@ -240,7 +239,7 @@ async def _resolve_requirement_list(
                         requirements=list(new_candidate.requirements.values()),
                     )
         else:
-            logging.debug('New package %s discovered.', requirement.info.name)
+            logger.debug('New package %s discovered.', requirement.info.name)
             candidate_info = sorted(requirement.candidates, reverse=True)[0]
 
         candidate = requirement.candidates[candidate_info]
