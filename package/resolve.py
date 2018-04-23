@@ -107,6 +107,7 @@ class Candidate:
     async def set_requirements(
             self,
             python_version: str,
+            extra: str,
             session: ClientSession,
     ):
         if self.info not in requirement_info_cache:
@@ -115,11 +116,12 @@ class Candidate:
             requirement_info_cache[self.info] = parse_requires_dist(metadata['info']['requires_dist'])
 
         for requirement_info in requirement_info_cache[self.info]:
-            if requirement_info.marker and not requirement_info.marker.evaluate(environment={
+            environment = {
                 'python_version': python_version,
-                'extra': requirement_info.extra,
-            }):
-                logger.debug('Skipping %r because marker does not match environment.', requirement_info)
+                'extra': extra,
+            }
+            if requirement_info.marker and not requirement_info.marker.evaluate(environment=environment):
+                logger.debug('Skipping %r, marker does not match %r.', requirement_info, environment)
                 continue
 
             requirement = Requirement(requirement_info, self.requirement)
@@ -196,6 +198,7 @@ async def _resolve_requirement_list(
     ])
 
     for requirement in requirements:
+        logger.debug('Resolving %r', requirement.info)
 
         live_candidates = list(_iter_live_candidates(base_requirements, requirement.info.name))
         if live_candidates:
@@ -227,6 +230,7 @@ async def _resolve_requirement_list(
                     # Almost all from cache
                     await new_candidate.set_requirements(
                         python_version=python_version,
+                        extra=new_candidate.requirement.info.extra,
                         session=session,
                     )
                     await _resolve_requirement_list(
@@ -245,6 +249,7 @@ async def _resolve_requirement_list(
         candidate.live = True
         await candidate.set_requirements(
             python_version=python_version,
+            extra=requirement.info.extra,
             session=session,
         )
         await _resolve_requirement_list(
