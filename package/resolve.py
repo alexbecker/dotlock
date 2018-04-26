@@ -4,6 +4,7 @@ from typing import List, Optional, Iterable, Set
 from enum import IntEnum, auto
 import logging
 import asyncio
+import re
 
 from aiohttp import ClientSession
 from packaging.utils import canonicalize_name
@@ -13,6 +14,7 @@ from packaging.markers import Marker
 
 from package.api_requests import get_source_and_base_metadata, get_version_metadata
 from package.exceptions import NoMatchingCandidateError, CircularDependencyError
+from package.pep425tags import get_supported
 
 
 logger = logging.getLogger(__name__)
@@ -45,12 +47,26 @@ class RequirementInfo(namedtuple(
 
 CandidateInfo = namedtuple(
     'CandidateInfo',
-    ('name', 'version', 'package_type', 'source', 'sha256')
+    ('name', 'version', 'package_type', 'source', 'url', 'sha256')
 )
 
 
 requirement_info_cache = {}
 candidate_info_cache = {}
+
+
+# Regex for parsing wheel filenames per https://www.python.org/dev/peps/pep-0427/#file-name-convention
+# Copied from https://github.com/pypa/wheel/blob/8004cbe8dc8be834a40717e3d943af3cc28938cd/wheel/install.py
+WHEEL_INFO_RE = re.compile(
+    r"""^(?P<namever>(?P<name>.+?)-(?P<ver>\d.*?))(-(?P<build>\d.*?))?
+     -(?P<pyver>[a-z].+?)-(?P<abi>.+?)-(?P<plat>.+?)(\.whl|\.dist-info)$""",
+    re.VERBOSE)
+
+
+def get_pep425_tag(filename):
+    match = WHEEL_INFO_RE.match(filename)
+    if match:
+        return (match.group('pyver'), match.group('abi'), match.group('plat'))
 
 
 class Requirement:
@@ -80,15 +96,25 @@ class Requirement:
                     continue
                 for distribution in distributions:
                     package_type = PackageType[distribution['packagetype']]
-                    if package_type in package_types:
-                        sha256 = distribution['digests']['sha256']
-                        candidate_info_cache[self.info].append(CandidateInfo(
-                            name=self.info.name,
-                            version=version,
-                            package_type=package_type,
-                            source=source,
-                            sha256=sha256,
-                        ))
+
+                    if package_type.name.startswith('bdist'):
+                        filename = distribution['filename']
+                        pep425_tag = get_pep425_tag(filename)
+                        if pep425_tag is not None and pep425_tag not in get_supported():
+                            continue
+
+                    if package_type not in package_types:
+                        continue
+
+                    sha256 = distribution['digests']['sha256']
+                    candidate_info_cache[self.info].append(CandidateInfo(
+                        name=self.info.name,
+                        version=version,
+                        package_type=package_type,
+                        source=source,
+                        url=distribution['url'],
+                        sha256=sha256,
+                    ))
 
             if not candidate_info_cache[self.info]:
                 raise NoMatchingCandidateError(self.info)
@@ -279,14 +305,14 @@ async def resolve_requirements_list(
         )
 
 
-def _iter_live_candidate_info(requirements: Iterable[Requirement], seen: Set[CandidateInfo]) -> Iterable[CandidateInfo]:
+def _candidate_info_topo_sort(requirements: Iterable[Requirement], seen: Set[CandidateInfo]) -> Iterable[CandidateInfo]:
     for requirement in requirements:
         for candidate in requirement.candidates.values():
             if candidate.live and candidate.info not in seen:
                 seen.add(candidate.info)
+                yield from _candidate_info_topo_sort(candidate.requirements.values(), seen)
                 yield candidate.info
-                yield from _iter_live_candidate_info(candidate.requirements.values(), seen)
 
 
-def candidate_info_topo_order(requirements: List[Requirement]) -> List[CandidateInfo]:
-    return list(reversed(list(_iter_live_candidate_info(requirements, set()))))
+def candidate_info_topo_sort(requirements: List[Requirement]) -> List[CandidateInfo]:
+    return list(_candidate_info_topo_sort(requirements, set()))
