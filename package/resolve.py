@@ -1,72 +1,23 @@
 """Code for resolving requirements into concrete versions."""
-from collections import namedtuple
 from typing import List, Optional, Iterable, Set
-from enum import IntEnum, auto
 import logging
 import asyncio
-import re
 
 from aiohttp import ClientSession
-from packaging.utils import canonicalize_name
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version, InvalidVersion
-from packaging.markers import Marker
 
 from package.api_requests import get_source_and_base_metadata, get_version_metadata
+from package.dist_info_parsing import PackageType, RequirementInfo, CandidateInfo, get_pep425_tag, parse_requires_dist
 from package.exceptions import NoMatchingCandidateError, CircularDependencyError
 from package.pep425tags import get_supported
+from package.sdist_handling import get_sdist_requirements
 
 
 logger = logging.getLogger(__name__)
 
-
-class PackageType(IntEnum):
-    bdist_wininst = auto()
-    bdist_msi = auto()
-    bdist_egg = auto()
-    sdist = auto()
-    bdist_rpm = auto()
-    bdist_wheel = auto()
-
-
-class RequirementInfo(namedtuple(
-        '_RequirementInfo',
-        ('name', 'specifier', 'extra', 'marker'),
-    )):
-    def __str__(self):
-        result = self.name
-        if self.extra:
-            result += f'[{self.extra}]'
-        specifier_str = str(self.specifier) if self.specifier else '*'
-        if self.marker:
-            specifier_str += f'; {self.marker}'
-        if specifier_str:
-            result += f' ({specifier_str})'
-        return result
-
-
-CandidateInfo = namedtuple(
-    'CandidateInfo',
-    ('name', 'version', 'package_type', 'source', 'url', 'sha256')
-)
-
-
 requirement_info_cache = {}
 candidate_info_cache = {}
-
-
-# Regex for parsing wheel filenames per https://www.python.org/dev/peps/pep-0427/#file-name-convention
-# Copied from https://github.com/pypa/wheel/blob/8004cbe8dc8be834a40717e3d943af3cc28938cd/wheel/install.py
-WHEEL_INFO_RE = re.compile(
-    r"""^(?P<namever>(?P<name>.+?)-(?P<ver>\d.*?))(-(?P<build>\d.*?))?
-     -(?P<pyver>[a-z].+?)-(?P<abi>.+?)-(?P<plat>.+?)(\.whl|\.dist-info)$""",
-    re.VERBOSE)
-
-
-def get_pep425_tag(filename):
-    match = WHEEL_INFO_RE.match(filename)
-    if match:
-        return (match.group('pyver'), match.group('abi'), match.group('plat'))
 
 
 class Requirement:
@@ -101,9 +52,11 @@ class Requirement:
                         filename = distribution['filename']
                         pep425_tag = get_pep425_tag(filename)
                         if pep425_tag is not None and pep425_tag not in get_supported():
+                            logger.debug('Skipping unsupported bdist %s', filename)
                             continue
 
                     if package_type not in package_types:
+                        logger.debug('Skipping package type %s for %s', package_type.name, self.info.name)
                         continue
 
                     sha256 = distribution['digests']['sha256']
@@ -137,9 +90,13 @@ class Candidate:
             session: ClientSession,
     ):
         if self.info not in requirement_info_cache:
-            metadata = await get_version_metadata(self.info.source, session, self.info.name, self.info.version)
+            if self.info.package_type == PackageType.sdist:
+                requirement_infos = await get_sdist_requirements(session, self.info)
+            else:
+                metadata = await get_version_metadata(self.info.source, session, self.info.name, self.info.version)
+                requirement_infos = parse_requires_dist(metadata['info']['requires_dist'])
 
-            requirement_info_cache[self.info] = parse_requires_dist(metadata['info']['requires_dist'])
+            requirement_info_cache[self.info] = requirement_infos
 
         for requirement_info in requirement_info_cache[self.info]:
             environment = {
@@ -159,37 +116,6 @@ class Candidate:
                     raise CircularDependencyError([r.info.name for r in parents])
 
             self.requirements[requirement_info] = requirement
-
-
-def parse_requires_dist(requirement_lines: Optional[List[str]]) -> List[RequirementInfo]:
-    if not requirement_lines:
-        return []
-
-    requirements = []
-    for line in requirement_lines:
-        if ';' in line:
-            line, marker = line.split(';')
-            marker = Marker(marker.lstrip())
-        else:
-            marker = None
-
-        if ' ' in line:
-            line, specifier = line.split(' ')
-            specifier = SpecifierSet(specifier.strip('()'))
-        else:
-            specifier = None
-
-        if '[' in line:
-            name, extra = line.split('[')
-            extra = extra.rstrip(']')
-        else:
-            name = line
-            extra = None
-
-        name = canonicalize_name(name)
-        requirements.append(RequirementInfo(name, specifier, extra, marker))
-
-    return requirements
 
 
 def _iter_live_specifiers(base_requirements: Iterable[Requirement], name: str) -> Iterable[SpecifierSet]:

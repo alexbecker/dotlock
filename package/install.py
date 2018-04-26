@@ -3,9 +3,10 @@ import asyncio.subprocess
 import os
 import os.path
 import logging
-import distlib.index
 from tempfile import TemporaryDirectory
 from typing import List
+
+import distlib.index
 
 
 logger = logging.getLogger(__name__)
