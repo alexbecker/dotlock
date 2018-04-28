@@ -3,11 +3,12 @@ from typing import List, Optional, Iterable, Set
 import logging
 import asyncio
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, TCPConnector
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version, InvalidVersion
 
 from package.api_requests import get_source_and_base_metadata, get_version_metadata
+from package.bdist_wheel_handling import get_bdist_wheel_requirements
 from package.dist_info_parsing import PackageType, RequirementInfo, CandidateInfo, get_pep425_tag, parse_requires_dist
 from package.exceptions import NoMatchingCandidateError, CircularDependencyError
 from package.pep425tags import get_supported
@@ -94,7 +95,11 @@ class Candidate:
                 requirement_infos = await get_sdist_requirements(session, self.info)
             else:
                 metadata = await get_version_metadata(self.info.source, session, self.info.name, self.info.version)
-                requirement_infos = parse_requires_dist(metadata['info']['requires_dist'])
+                requires_dist = metadata['info']['requires_dist']
+                if requires_dist is not None:
+                    requirement_infos = parse_requires_dist(requires_dist)
+                else:
+                    requirement_infos = await get_bdist_wheel_requirements(session, self.info)
 
             requirement_info_cache[self.info] = requirement_infos
 
@@ -220,7 +225,8 @@ async def resolve_requirements_list(
         sources: List[str],
         requirements: List[Requirement],
 ) -> None:
-    async with ClientSession() as session:
+    connector = TCPConnector(limit=10)
+    async with ClientSession(connector=connector) as session:
         await _resolve_requirement_list(
             package_types=package_types,
             python_version=python_version,

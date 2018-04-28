@@ -312,6 +312,9 @@ def get_supported(versions=None, noarch=False, platform=None,
         if i == 0:
             supported.append(('py%s' % (version[0]), 'none', 'any'))
 
+    # NOT IN ORIGINAL: support universal wheels
+    supported.append(('py2.py3', 'none', 'any'))
+
     return supported
 
 

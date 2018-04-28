@@ -1,6 +1,6 @@
 from collections import namedtuple
 from enum import IntEnum, auto
-from typing import List, Optional
+from typing import List
 import re
 
 from packaging.requirements import Requirement as PackagingRequirement
@@ -52,10 +52,7 @@ def get_pep425_tag(filename):
         return (match.group('pyver'), match.group('abi'), match.group('plat'))
 
 
-def parse_requires_dist(requirement_lines: Optional[List[str]]) -> List[RequirementInfo]:
-    if not requirement_lines:
-        return []
-
+def parse_requires_dist(requirement_lines: List[str]) -> List[RequirementInfo]:
     requirements = []
     for line in requirement_lines:
         r = PackagingRequirement(line)

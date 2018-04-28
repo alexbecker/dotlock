@@ -9,8 +9,7 @@ from tempfile import TemporaryDirectory
 from aiohttp import ClientSession
 from packaging.utils import canonicalize_name
 
-from package.dist_info_parsing import parse_requires_dist
-from package.resolve import CandidateInfo, RequirementInfo, PackageType
+from package.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType, parse_requires_dist
 
 
 logger = logging.getLogger(__name__)
@@ -58,9 +57,9 @@ async def get_sdist_requirements(session: ClientSession, candidate_info: Candida
     url = candidate_info.url
     filename = url.split('/')[-1]
 
-    with TemporaryDirectory(prefix='python-package-') as dir:
+    with TemporaryDirectory(prefix='python-package-') as tmpdir:
         cwd = os.getcwd()
-        os.chdir(dir)
+        os.chdir(tmpdir)
         try:
             # Download the tarball.
             logger.debug('downloading archive %s', candidate_info.url)
