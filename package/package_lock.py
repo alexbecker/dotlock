@@ -1,20 +1,20 @@
 from typing import Dict, List
 import json
 
-from package.resolve import Requirement, candidate_info_topo_sort
+from package.resolve import Requirement, candidate_topo_sort
 from package.package_json import PackageJSON
 
 
 def candidate_list(requirements: List[Requirement]) -> List[Dict[str, str]]:
     return [
         {
-            'name': candidate_info.name,
-            'version': str(candidate_info.version),
-            'package_type': candidate_info.package_type.name,
-            'source': candidate_info.source,
-            'url': candidate_info.url,
-            'sha256': candidate_info.sha256,
-        } for candidate_info in candidate_info_topo_sort(requirements)
+            'name': candidate.info.name,
+            'version': str(candidate.info.version),
+            'package_type': candidate.info.package_type.name,
+            'source': candidate.info.source,
+            'url': candidate.info.url,
+            'sha256': candidate.info.sha256,
+        } for candidate in candidate_topo_sort(requirements)
     ]
 
 

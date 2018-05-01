@@ -27,6 +27,17 @@ class Requirement:
         self.parent = parent
         self.candidates = {}
 
+    def _parent_list(self, parent_infos: List[str]) -> List[str]:
+        if parent_infos and self.info.name == parent_infos[0]:
+            raise CircularDependencyError(parent_infos)
+        parent_infos.append(self.info)
+        if self.parent:
+            self.parent._parent_list(parent_infos)
+        return parent_infos
+
+    def parent_list(self) -> List[str]:
+        return self._parent_list([])
+
     async def set_candidates(
             self,
             package_types: List[PackageType],
@@ -46,6 +57,7 @@ class Requirement:
 
                 if self.info.specifier and not self.info.specifier.contains(version):
                     continue
+
                 for distribution in distributions:
                     package_type = PackageType[distribution['packagetype']]
 
@@ -74,22 +86,19 @@ class Requirement:
                 raise NoMatchingCandidateError(self.info)
 
         for candidate_info in candidate_info_cache[self.info]:
-            self.candidates[candidate_info] = Candidate(candidate_info, self)
+            extras = {self.info.extra} if self.info.extra else set()
+            self.candidates[candidate_info] = Candidate(candidate_info, self, extras)
 
 
 class Candidate:
-    def __init__(self, info: CandidateInfo, requirement: Requirement):
+    def __init__(self, info: CandidateInfo, requirement: Requirement, extras: Set[str]):
         self.info = info
         self.requirement = requirement
+        self.extras = extras
         self.live = False
         self.requirements = {}
 
-    async def set_requirements(
-            self,
-            python_version: str,
-            extra: str,
-            session: ClientSession,
-    ):
+    async def set_requirements(self, session: ClientSession):
         if self.info not in requirement_info_cache:
             if self.info.package_type == PackageType.sdist:
                 requirement_infos = await get_sdist_requirements(session, self.info)
@@ -99,27 +108,21 @@ class Candidate:
                 if requires_dist is not None:
                     requirement_infos = parse_requires_dist(requires_dist)
                 else:
-                    requirement_infos = await get_bdist_wheel_requirements(session, self.info)
+                    requirement_infos = await get_bdist_wheel_requirements(session, self)
 
             requirement_info_cache[self.info] = requirement_infos
 
         for requirement_info in requirement_info_cache[self.info]:
-            environment = {
-                'python_version': python_version,
-                'extra': extra,
-            }
-            if requirement_info.marker and not requirement_info.marker.evaluate(environment=environment):
-                logger.debug('Skipping %r, marker does not match %r.', requirement_info, environment)
-                continue
+            if requirement_info.marker:
+                environments = [{'extra': extra} for extra in self.extras] if self.extras else [{'extra': None}]
+                if not any(
+                    requirement_info.marker.evaluate(environment) for environment in environments
+                ):
+                    logger.debug('Skipping %r, marker does not match environment.', requirement_info)
+                    continue
 
             requirement = Requirement(requirement_info, self.requirement)
-
-            parents = [requirement]
-            while parents[-1].parent is not None:
-                parents.append(parents[-1].parent)
-                if parents[-1].info.name == requirement.info.name:
-                    raise CircularDependencyError([r.info.name for r in parents])
-
+            logger.debug('Adding requirement %r from chain %r', requirement_info, requirement.parent_list())
             self.requirements[requirement_info] = requirement
 
 
@@ -143,7 +146,6 @@ def _iter_live_candidates(base_requirements: Iterable[Requirement], name: str) -
 
 async def _resolve_requirement_list(
         package_types: List[PackageType],
-        python_version: str,
         sources: List[str],
         session: ClientSession,
         base_requirements: List[Requirement],
@@ -177,6 +179,7 @@ async def _resolve_requirement_list(
                     # FIXME: handle single-pass failures
                     raise Exception(f'Single pass failed on {requirement.info} (rejected existing {live_candidate_info})')
 
+                # TODO: allow different resolution strategies based on version and package type
                 candidate_info = sorted(candidate_infos, reverse=True)[0]
 
                 # Kill the previously live candidates and switch to the new live candidate.
@@ -184,15 +187,12 @@ async def _resolve_requirement_list(
                     live_candidate.live = False
                     new_candidate = live_candidate.requirement.candidates[candidate_info]
                     new_candidate.live = True
+                    if requirement.info.extra:
+                        new_candidate.extras.add(requirement.info.extra)
                     # Almost all from cache
-                    await new_candidate.set_requirements(
-                        python_version=python_version,
-                        extra=new_candidate.requirement.info.extra,
-                        session=session,
-                    )
+                    await new_candidate.set_requirements(session=session)
                     await _resolve_requirement_list(
                         package_types=package_types,
-                        python_version=python_version,
                         sources=sources,
                         session=session,
                         base_requirements=base_requirements,
@@ -204,14 +204,11 @@ async def _resolve_requirement_list(
 
         candidate = requirement.candidates[candidate_info]
         candidate.live = True
-        await candidate.set_requirements(
-            python_version=python_version,
-            extra=requirement.info.extra,
-            session=session,
-        )
+        if requirement.info.extra:
+            candidate.extras.add(requirement.info.extra)
+        await candidate.set_requirements(session=session)
         await _resolve_requirement_list(
             package_types=package_types,
-            python_version=python_version,
             sources=sources,
             session=session,
             base_requirements=base_requirements,
@@ -221,7 +218,6 @@ async def _resolve_requirement_list(
 
 async def resolve_requirements_list(
         package_types: List[PackageType],
-        python_version: str,
         sources: List[str],
         requirements: List[Requirement],
 ) -> None:
@@ -229,7 +225,6 @@ async def resolve_requirements_list(
     async with ClientSession(connector=connector) as session:
         await _resolve_requirement_list(
             package_types=package_types,
-            python_version=python_version,
             sources=sources,
             session=session,
             base_requirements=requirements,
@@ -237,14 +232,15 @@ async def resolve_requirements_list(
         )
 
 
-def _candidate_info_topo_sort(requirements: Iterable[Requirement], seen: Set[CandidateInfo]) -> Iterable[CandidateInfo]:
+def _candidate_topo_sort(requirements: Iterable[Requirement], seen: Set[str]) -> Iterable[Candidate]:
     for requirement in requirements:
         for candidate in requirement.candidates.values():
-            if candidate.live and candidate.info not in seen:
-                seen.add(candidate.info)
-                yield from _candidate_info_topo_sort(candidate.requirements.values(), seen)
-                yield candidate.info
+            name = candidate.info.name
+            if candidate.live and name not in seen:
+                seen.add(name)
+                yield from _candidate_topo_sort(candidate.requirements.values(), seen)
+                yield candidate
 
 
-def candidate_info_topo_sort(requirements: List[Requirement]) -> List[CandidateInfo]:
-    return list(_candidate_info_topo_sort(requirements, set()))
+def candidate_topo_sort(requirements: List[Requirement]) -> List[Candidate]:
+    return list(_candidate_topo_sort(requirements, set()))

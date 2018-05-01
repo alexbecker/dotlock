@@ -37,7 +37,6 @@ class PackageJSON:
     async def resolve_default(self):
         return await resolve_requirements_list(
             package_types=[PackageType.bdist_wheel, PackageType.sdist],  # FIXME: this is pretty arbitrary
-            python_version=self.python_version,
             sources=self.sources,
             requirements=self.default,
         )

@@ -6,8 +6,8 @@ from package import resolve
 
 @pytest.mark.asyncio
 async def test_aiohttp(aiohttp_resolved_requirements):
-    candidate_infos = resolve.candidate_info_topo_sort(aiohttp_resolved_requirements)
-    candidate_names = [info.name for info in candidate_infos]
+    candidates = resolve.candidate_topo_sort(aiohttp_resolved_requirements)
+    candidate_names = [candidate.info.name for candidate in candidates]
 
     assert candidate_names == [
         'idna',
@@ -40,13 +40,12 @@ async def test_certbot():
             resolve.PackageType.bdist_wheel,
             resolve.PackageType.sdist,
         ],
-        python_version='3.6',
         sources=[
             'https://pypi.org/pypi',
         ],
     )
-    candidate_infos = resolve.candidate_info_topo_sort(requirements)
-    candidate_names = [info.name for info in candidate_infos]
+    candidates = resolve.candidate_topo_sort(requirements)
+    candidate_names = [candidate.info.name for candidate in candidates]
 
     assert candidate_names == [
         'setuptools',

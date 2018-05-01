@@ -28,7 +28,6 @@ async def resolve_aiohttp_requirements():
             resolve.PackageType.bdist_wheel,
             resolve.PackageType.sdist,
         ],
-        python_version='3.6',
         sources=[
             'https://pypi.org/pypi',
         ],

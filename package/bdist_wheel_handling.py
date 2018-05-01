@@ -9,17 +9,17 @@ from packaging.markers import Marker
 from packaging.requirements import Requirement as PackagingRequirement
 from packaging.utils import canonicalize_name
 
-from package.dist_info_parsing import CandidateInfo, RequirementInfo, PackageType
+from package.dist_info_parsing import RequirementInfo, PackageType
 
 
 logger = logging.getLogger(__name__)
 
 
-async def get_bdist_wheel_requirements(session: ClientSession, candidate_info: CandidateInfo) -> List[RequirementInfo]:
-    assert candidate_info.package_type == PackageType.bdist_wheel
-    logger.debug('%s has null requirements in index, so we are forced to download it', candidate_info.name)
+async def get_bdist_wheel_requirements(session: ClientSession, candidate: 'Candidate') -> List[RequirementInfo]:
+    assert candidate.info.package_type == PackageType.bdist_wheel
+    logger.debug('%s has null requirements in index, so we are forced to download it', candidate.info.name)
 
-    url = candidate_info.url
+    url = candidate.info.url
     filename = url.split('/')[-1]
 
     requirements = []
@@ -28,8 +28,8 @@ async def get_bdist_wheel_requirements(session: ClientSession, candidate_info: C
         os.chdir(tmpdir)
         try:
             # Download the wheel.
-            logger.debug('downloading wheel %s', candidate_info.url)
-            async with session.get(candidate_info.url) as response:
+            logger.debug('downloading wheel %s', candidate.info.url)
+            async with session.get(candidate.info.url) as response:
                 with open(filename, 'wb') as fp:
                     async for chunk in response.content.iter_any():
                         fp.write(chunk)
@@ -39,12 +39,14 @@ async def get_bdist_wheel_requirements(session: ClientSession, candidate_info: C
                 dependencies_dict = wheel.metadata.dependencies
             except NotImplementedError:
                 dependencies_dict = wheel.metadata.dictionary
-            logger.debug('distlib found dependencies for %s: %r', candidate_info.name, dependencies_dict)
+            logger.debug('distlib found dependencies for %s: %r', candidate.info.name, dependencies_dict)
             dependencies_list = dependencies_dict.get('setup_requires', []) + dependencies_dict.get('run_requires', [])
             for subdict in dependencies_list:
                 extra = subdict.get('extra')
-                if extra:
-                    continue  # FIXME
+                if extra and extra not in candidate.extras:
+                    logging.debug('Skipping dependencies for extra %s', extra)
+                    continue
+
                 environment = subdict.get('environment')
                 marker = Marker(environment) if environment else None
                 for r in subdict['requires']:
