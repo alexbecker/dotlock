@@ -5,20 +5,12 @@ import asyncio
 
 from aiohttp import ClientSession, TCPConnector
 from packaging.specifiers import SpecifierSet
-from packaging.version import Version, InvalidVersion
 
-from package.api_requests import get_source_and_base_metadata, get_version_metadata
-from package.bdist_wheel_handling import get_bdist_wheel_requirements
-from package.dist_info_parsing import PackageType, RequirementInfo, CandidateInfo, get_pep425_tag, parse_requires_dist
-from package.exceptions import NoMatchingCandidateError, CircularDependencyError
-from package.pep425tags import get_supported
-from package.sdist_handling import get_sdist_requirements
+from package.dist_info_parsing import PackageType, RequirementInfo, CandidateInfo
+from package.exceptions import CircularDependencyError
 
 
 logger = logging.getLogger(__name__)
-
-requirement_info_cache = {}
-candidate_info_cache = {}
 
 
 class Requirement:
@@ -58,50 +50,8 @@ class Requirement:
             sources: Base URLs for PyPI-like package repositories.
             session: Async session to use for HTTP requests.
         """
-        if self.info not in candidate_info_cache:
-            source, base_metadata = await get_source_and_base_metadata(sources, session, self.info.name)
-
-            candidate_info_cache[self.info] = []
-            for version_str, distributions in base_metadata['releases'].items():
-                try:
-                    version = Version(version_str)
-                except InvalidVersion:
-                    logger.info('Invalid version for %r: %s', self.info, version_str)
-                    continue  # Skip candidates without a valid version.
-
-                if self.info.specifier and not self.info.specifier.contains(version):
-                    continue  # Skip candidates whose versions don't satisfy the requirement.
-
-                for distribution in distributions:
-                    package_type = PackageType[distribution['packagetype']]
-
-                    if package_type.name.startswith('bdist'):
-                        # Per PEP 425, bdist filename encodes what environments the distribution supports.
-                        filename = distribution['filename']
-                        pep425_tag = get_pep425_tag(filename)
-                        # Some bdists don't follow PEP 425 and right now we just assume those are universal.
-                        if pep425_tag is not None and pep425_tag not in get_supported():
-                            logger.debug('Skipping unsupported bdist %s', filename)
-                            continue
-
-                    if package_type not in package_types:
-                        logger.debug('Skipping package type %s for %s', package_type.name, self.info.name)
-                        continue
-
-                    sha256 = distribution['digests']['sha256']
-                    candidate_info_cache[self.info].append(CandidateInfo(
-                        name=self.info.name,
-                        version=version,
-                        package_type=package_type,
-                        source=source,
-                        url=distribution['url'],
-                        sha256=sha256,
-                    ))
-
-            if not candidate_info_cache[self.info]:
-                raise NoMatchingCandidateError(self.info)
-
-        for candidate_info in candidate_info_cache[self.info]:
+        candidate_infos = await self.info.get_candidate_infos(package_types, sources, session)
+        for candidate_info in candidate_infos:
             extras = {self.info.extra} if self.info.extra else set()
             self.candidates[candidate_info] = Candidate(candidate_info, self, extras)
 
@@ -125,23 +75,8 @@ class Candidate:
         Args:
             session: Async session to use for HTTP requests.
         """
-        if self.info not in requirement_info_cache:
-            if self.info.package_type == PackageType.sdist:
-                # PyPI does not list dependencies for sdists; they must be downloaded.
-                requirement_infos = await get_sdist_requirements(session, self.info)
-            else:
-                # PyPI MAY list dependencies for bdists.
-                metadata = await get_version_metadata(self.info.source, session, self.info.name, self.info.version)
-                requires_dist = metadata['info']['requires_dist']
-                if requires_dist is not None:
-                    requirement_infos = parse_requires_dist(requires_dist)
-                else:
-                    # If the dependencies are null, assume PyPI just doesn't know about them.
-                    requirement_infos = await get_bdist_wheel_requirements(session, self)
-
-            requirement_info_cache[self.info] = requirement_infos
-
-        for requirement_info in requirement_info_cache[self.info]:
+        requirement_infos = await self.info.get_requirement_infos(session)
+        for requirement_info in requirement_infos:
             # Skip any requirements that do not apply to the current environment
             # or are for extras we do not want for this candidate.
             if requirement_info.marker:

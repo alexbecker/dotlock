@@ -2,62 +2,70 @@ from tempfile import TemporaryDirectory
 from typing import List
 import logging
 import os
+import zipfile
 
 from aiohttp import ClientSession
-from distlib.wheel import Wheel
-from packaging.markers import Marker
-from packaging.requirements import Requirement as PackagingRequirement
+from packaging.specifiers import SpecifierSet
 from packaging.utils import canonicalize_name
+from pkg_resources import parse_requirements
 
-from package.dist_info_parsing import RequirementInfo, PackageType
+from package.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType
+from package.markers import Marker
 
 
 logger = logging.getLogger(__name__)
 
 
-async def get_bdist_wheel_requirements(session: ClientSession, candidate: 'Candidate') -> List[RequirementInfo]:
-    assert candidate.info.package_type == PackageType.bdist_wheel
-    logger.debug('%s has null requirements in index, so we are forced to download it', candidate.info.name)
+async def get_bdist_wheel_requirements(session: ClientSession, candidate_info: CandidateInfo) -> List[RequirementInfo]:
+    assert candidate_info.package_type == PackageType.bdist_wheel
+    logger.debug('%s has null requirements in index, so we are forced to download it', candidate_info.name)
 
-    url = candidate.info.url
+    url = candidate_info.url
     filename = url.split('/')[-1]
 
-    requirements = []
     with TemporaryDirectory(prefix='python-package-') as tmpdir:
         cwd = os.getcwd()
         os.chdir(tmpdir)
         try:
             # Download the wheel.
-            logger.debug('downloading wheel %s', candidate.info.url)
-            async with session.get(candidate.info.url) as response:
+            logger.debug('downloading wheel %s', candidate_info.url)
+            async with session.get(candidate_info.url) as response:
                 with open(filename, 'wb') as fp:
                     async for chunk in response.content.iter_any():
                         fp.write(chunk)
 
-            wheel = Wheel(filename)
-            try:
-                dependencies_dict = wheel.metadata.dependencies
-            except NotImplementedError:
-                dependencies_dict = wheel.metadata.dictionary
-            logger.debug('distlib found dependencies for %s: %r', candidate.info.name, dependencies_dict)
-            dependencies_list = dependencies_dict.get('setup_requires', []) + dependencies_dict.get('run_requires', [])
-            for subdict in dependencies_list:
-                extra = subdict.get('extra')
-                if extra and extra not in candidate.extras:
-                    logging.debug('Skipping dependencies for extra %s', extra)
-                    continue
-
-                environment = subdict.get('environment')
-                marker = Marker(environment) if environment else None
-                for r in subdict['requires']:
-                    r = PackagingRequirement(r)
-                    requirements.append(RequirementInfo(
-                        name=canonicalize_name(r.name),
-                        specifier=r.specifier,
-                        extra=extra,
-                        marker=marker,
-                    ))
+            return get_wheel_file_requirements(filename)
         finally:
             os.chdir(cwd)
 
-    return requirements
+
+def get_wheel_file_requirements(filename: str) -> List[RequirementInfo]:
+    relative_name = os.path.split(filename)[-1]
+    dist_info_dirname = '-'.join(relative_name.split('-')[:2]) + '.dist-info'
+    metadata_name = os.path.join(dist_info_dirname, 'METADATA')
+
+    requirement_lines = []
+    with zipfile.ZipFile(filename) as wheel_zip:
+        with wheel_zip.open(metadata_name) as fp:
+            for line in fp:
+                line = line.decode('utf-8')
+                req_prefix = 'Requires-Dist:'
+                if line.startswith(req_prefix):
+                    line = line[len(req_prefix):].strip()
+                    requirement_lines.append(line)
+
+    rv = []
+    parsed_requirements = parse_requirements(requirement_lines)
+    for r in parsed_requirements:
+        extra = r.extras[0] if r.extras else None
+        # pkg_resources vendors packaging so we have to change the type so comparisons work
+        specifier = SpecifierSet(str(r.specifier))
+        marker = Marker(str(r.marker)) if r.marker else None
+        rv.append(RequirementInfo(
+            name=canonicalize_name(r.name),
+            specifier=specifier,
+            extra=extra,
+            marker=marker,
+        ))
+
+    return rv
