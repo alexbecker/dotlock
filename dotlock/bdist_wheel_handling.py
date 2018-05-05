@@ -8,9 +8,9 @@ from packaging.specifiers import SpecifierSet
 from packaging.utils import canonicalize_name
 from pkg_resources import parse_requirements
 
-from package.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType
-from package.markers import Marker
-from package.tempdir import temp_working_dir
+from dotlock.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType
+from dotlock.markers import Marker
+from dotlock.tempdir import temp_working_dir
 
 
 logger = logging.getLogger(__name__)

@@ -9,8 +9,8 @@ from tempfile import TemporaryDirectory
 from aiohttp import ClientSession
 from packaging.utils import canonicalize_name
 
-from package.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType, parse_requires_dist
-from package.tempdir import temp_working_dir
+from dotlock.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType, parse_requires_dist
+from dotlock.tempdir import temp_working_dir
 
 
 logger = logging.getLogger(__name__)

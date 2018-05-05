@@ -6,8 +6,8 @@ import asyncio
 from aiohttp import ClientSession, TCPConnector
 from packaging.specifiers import SpecifierSet
 
-from package.dist_info_parsing import PackageType, RequirementInfo, CandidateInfo
-from package.exceptions import CircularDependencyError
+from dotlock.dist_info_parsing import PackageType, RequirementInfo, CandidateInfo
+from dotlock.exceptions import CircularDependencyError
 
 
 logger = logging.getLogger(__name__)

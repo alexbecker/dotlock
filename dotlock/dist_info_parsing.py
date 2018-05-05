@@ -9,10 +9,10 @@ from packaging.requirements import Requirement as PackagingRequirement
 from packaging.utils import canonicalize_name
 from packaging.version import Version, InvalidVersion
 
-from package.api_requests import get_source_and_base_metadata, get_version_metadata
-from package.exceptions import NoMatchingCandidateError
-from package.markers import Marker
-from package.pep425tags import get_supported
+from dotlock.api_requests import get_source_and_base_metadata, get_version_metadata
+from dotlock.exceptions import NoMatchingCandidateError
+from dotlock.markers import Marker
+from dotlock.pep425tags import get_supported
 
 
 logger = logging.getLogger(__name__)
@@ -102,8 +102,8 @@ class CandidateInfo(namedtuple(
         ('name', 'version', 'package_type', 'source', 'url', 'sha256')
     )):
     async def get_requirement_infos(self, session: ClientSession):
-        from package.bdist_wheel_handling import get_bdist_wheel_requirements
-        from package.sdist_handling import get_sdist_requirements
+        from dotlock.bdist_wheel_handling import get_bdist_wheel_requirements
+        from dotlock.sdist_handling import get_sdist_requirements
 
         if self not in requirement_info_cache:
             if self.package_type == PackageType.sdist:

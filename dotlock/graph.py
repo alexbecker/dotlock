@@ -1,6 +1,6 @@
 from typing import List
 
-from package.resolve import Requirement
+from dotlock.resolve import Requirement
 
 
 def graph_resolution(requirements: List[Requirement], offset=0):

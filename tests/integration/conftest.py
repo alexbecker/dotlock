@@ -2,8 +2,8 @@ import pytest
 import virtualenv
 from packaging.specifiers import SpecifierSet
 
-from package import resolve
-from package.tempdir import temp_working_dir
+from dotlock import resolve
+from dotlock.tempdir import temp_working_dir
 
 
 @pytest.fixture(name='aiohttp_resolved_requirements')

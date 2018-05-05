@@ -4,7 +4,7 @@ import json
 from packaging.specifiers import SpecifierSet
 from packaging.utils import canonicalize_name
 
-from package.resolve import PackageType, RequirementInfo, Requirement, resolve_requirements_list
+from dotlock.resolve import PackageType, RequirementInfo, Requirement, resolve_requirements_list
 
 
 class PackageJSON:

@@ -1,8 +1,8 @@
 from typing import Dict, List
 import json
 
-from package.resolve import Requirement, candidate_topo_sort
-from package.package_json import PackageJSON
+from dotlock.resolve import Requirement, candidate_topo_sort
+from dotlock.package_json import PackageJSON
 
 
 def candidate_list(requirements: List[Requirement]) -> List[Dict[str, str]]:

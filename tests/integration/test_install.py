@@ -2,9 +2,9 @@ import subprocess
 
 import pytest
 
-from package.activate import activate
-from package.install import install
-from package.package_lock import candidate_list
+from dotlock.activate import activate
+from dotlock.install import install
+from dotlock.package_lock import candidate_list
 
 
 @pytest.mark.asyncio

@@ -5,11 +5,11 @@ import sys
 
 import virtualenv
 
-from package.activate import activate
-from package.graph import graph_resolution
-from package.package_json import PackageJSON
-from package.package_lock import write_package_lock, load_package_lock
-from package.install import install
+from dotlock.activate import activate
+from dotlock.graph import graph_resolution
+from dotlock.package_json import PackageJSON
+from dotlock.package_lock import write_package_lock, load_package_lock
+from dotlock.install import install
 
 
 base_parser = argparse.ArgumentParser(description='A Python package management utility.')

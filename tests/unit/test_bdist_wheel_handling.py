@@ -2,9 +2,9 @@ from pathlib import Path
 
 from packaging.specifiers import SpecifierSet
 
-from package.dist_info_parsing import RequirementInfo
-from package.bdist_wheel_handling import get_wheel_file_requirements
-from package.markers import Marker
+from dotlock.dist_info_parsing import RequirementInfo
+from dotlock.bdist_wheel_handling import get_wheel_file_requirements
+from dotlock.markers import Marker
 
 
 def test_get_wheel_file_requirements():

@@ -1,7 +1,7 @@
 from packaging.specifiers import SpecifierSet
 import pytest
 
-from package import resolve
+from dotlock import resolve
 
 
 @pytest.mark.asyncio

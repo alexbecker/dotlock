@@ -5,7 +5,7 @@ import logging
 from aiohttp import ClientSession
 from packaging.version import Version
 
-from package.exceptions import NotFound
+from dotlock.exceptions import NotFound
 
 
 logger = logging.getLogger(__name__)
