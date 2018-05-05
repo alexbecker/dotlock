@@ -3,6 +3,9 @@ import asyncio
 import logging
 import sys
 
+import virtualenv
+
+from package.activate import activate
 from package.graph import graph_resolution
 from package.package_json import PackageJSON
 from package.package_lock import write_package_lock, load_package_lock
@@ -11,7 +14,7 @@ from package.install import install
 
 base_parser = argparse.ArgumentParser(description='A Python package management utility.')
 base_parser.add_argument('--debug', action='store_true', default=False)
-base_parser.add_argument('command', choices=['graph', 'lock', 'install'])
+base_parser.add_argument('command', choices=['init', 'activate', 'graph', 'lock', 'install'])
 base_parser.add_argument('args', nargs=argparse.REMAINDER, help='(varies by command)')
 
 
@@ -29,6 +32,10 @@ if __name__ == '__main__':
 
     loop = asyncio.get_event_loop()
 
+    if command == 'init':
+        virtualenv.create_environment('venv')
+    if command == 'activate':
+        activate()
     if command == 'graph':
         future = package_json.resolve_default()
         loop.run_until_complete(future)
@@ -39,4 +46,5 @@ if __name__ == '__main__':
         write_package_lock(package_json)
     if command == 'install':
         package_lock = load_package_lock('package.lock.json')
-        loop.run_until_complete(install('/home/alex/package/tmp', package_lock['default']))
+        future = install(package_lock['default'])
+        loop.run_until_complete(future)

@@ -7,6 +7,7 @@
         "distlib": "*",
         "packaging": "*",
         "pip": ">=9.0",
-        "setuptools": ">=39.0"
+        "setuptools": ">=39.0",
+        "virtualenv": "*"
     }
 }

@@ -1,12 +1,9 @@
-import os
-import shutil
-import sys
-
 import pytest
 import virtualenv
 from packaging.specifiers import SpecifierSet
 
 from package import resolve
+from package.tempdir import temp_working_dir
 
 
 @pytest.fixture(name='aiohttp_resolved_requirements')
@@ -37,17 +34,6 @@ async def resolve_aiohttp_requirements():
 
 @pytest.fixture(name='venv')
 def venv_fixture():
-    venv_dir = 'test_venv'
-    virtualenv.create_environment(venv_dir)
-    venv_script = os.path.join(venv_dir, 'bin', 'activate_this.py')
-
-    old_path = sys.path
-
-    try:
-        with open(venv_script) as fp:
-            exec(fp.read(), {'__file__': venv_script})
-
-        yield venv_dir
-    finally:
-        sys.path = old_path
-        shutil.rmtree(venv_dir)
+    with temp_working_dir():
+        virtualenv.create_environment('venv')
+        yield

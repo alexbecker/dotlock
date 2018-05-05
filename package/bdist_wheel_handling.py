@@ -1,4 +1,3 @@
-from tempfile import TemporaryDirectory
 from typing import List
 import logging
 import os
@@ -11,6 +10,7 @@ from pkg_resources import parse_requirements
 
 from package.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType
 from package.markers import Marker
+from package.tempdir import temp_working_dir
 
 
 logger = logging.getLogger(__name__)
@@ -23,20 +23,15 @@ async def get_bdist_wheel_requirements(session: ClientSession, candidate_info: C
     url = candidate_info.url
     filename = url.split('/')[-1]
 
-    with TemporaryDirectory(prefix='python-package-') as tmpdir:
-        cwd = os.getcwd()
-        os.chdir(tmpdir)
-        try:
-            # Download the wheel.
-            logger.debug('downloading wheel %s', candidate_info.url)
-            async with session.get(candidate_info.url) as response:
-                with open(filename, 'wb') as fp:
-                    async for chunk in response.content.iter_any():
-                        fp.write(chunk)
+    with temp_working_dir():
+        # Download the wheel.
+        logger.debug('downloading wheel %s', candidate_info.url)
+        async with session.get(candidate_info.url) as response:
+            with open(filename, 'wb') as fp:
+                async for chunk in response.content.iter_any():
+                    fp.write(chunk)
 
-            return get_wheel_file_requirements(filename)
-        finally:
-            os.chdir(cwd)
+        return get_wheel_file_requirements(filename)
 
 
 def get_wheel_file_requirements(filename: str) -> List[RequirementInfo]:

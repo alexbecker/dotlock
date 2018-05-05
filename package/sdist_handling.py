@@ -10,6 +10,7 @@ from aiohttp import ClientSession
 from packaging.utils import canonicalize_name
 
 from package.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType, parse_requires_dist
+from package.tempdir import temp_working_dir
 
 
 logger = logging.getLogger(__name__)
@@ -57,54 +58,49 @@ async def get_sdist_requirements(session: ClientSession, candidate_info: Candida
     url = candidate_info.url
     filename = url.split('/')[-1]
 
-    with TemporaryDirectory(prefix='python-package-') as tmpdir:
-        cwd = os.getcwd()
-        os.chdir(tmpdir)
+    with temp_working_dir():
+        # Download the tarball.
+        logger.debug('downloading archive %s', candidate_info.url)
+        async with session.get(candidate_info.url) as response:
+            with open(filename, 'wb') as fp:
+                async for chunk in response.content.iter_any():
+                    fp.write(chunk)
+
+        # Extract it.
+        if filename.endswith('.tar.gz'):
+            tar_process = await asyncio.create_subprocess_exec(
+                'tar', '-xf', filename,
+            )
+            await tar_process.wait()
+            extracted_dir = filename[:-len('.tar.gz')]
+        elif filename.endswith('.zip'):
+            zip_process = await asyncio.create_subprocess_exec(
+                'unzip', filename,
+            )
+            await zip_process.wait()
+            extracted_dir = filename[:-len('.zip')]
+        else:
+            raise ValueError('Unrecognized archive format: %s', filename)
+
+        # CD into the extracted directory.
+        # Necessary since some setup.py files expect to run from this directory.
+        os.chdir(extracted_dir)
+        # Some setup.py files also expect the current directory to be in the path.
+        sys.path.append(os.getcwd())
+
         try:
-            # Download the tarball.
-            logger.debug('downloading archive %s', candidate_info.url)
-            async with session.get(candidate_info.url) as response:
-                with open(filename, 'wb') as fp:
-                    async for chunk in response.content.iter_any():
-                        fp.write(chunk)
-
-            # Extract it.
-            if filename.endswith('.tar.gz'):
-                tar_process = await asyncio.create_subprocess_exec(
-                    'tar', '-xf', filename,
-                )
-                await tar_process.wait()
-                extracted_dir = filename[:-len('.tar.gz')]
-            elif filename.endswith('.zip'):
-                zip_process = await asyncio.create_subprocess_exec(
-                    'unzip', filename,
-                )
-                await zip_process.wait()
-                extracted_dir = filename[:-len('.zip')]
-            else:
-                raise ValueError('Unrecognized archive format: %s', filename)
-
-            # CD into the extracted directory.
-            # Necessary since some setup.py files expect to run from this directory.
-            os.chdir(extracted_dir)
-            # Some setup.py files also expect the current directory to be in the path.
-            sys.path.append(os.getcwd())
-
-            try:
-                # Parse setup.py and partially execute it.
-                distribution = run_setup()
-            finally:
-                sys.path.pop()
-
-            canonical_name = canonicalize_name(distribution.get_name())
-            assert canonical_name == candidate_info.name, canonical_name
-
-            if distribution.setup_requires:
-                logger.warning('Package %s uses setup_requires; we cannot guarantee integrity.',
-                               distribution.get_fullname())
-
-            requires = distribution.install_requires
-            logger.debug('%s sdist requires: %r', candidate_info.name, requires)
-            return parse_requires_dist(requires)
+            # Parse setup.py and partially execute it.
+            distribution = run_setup()
         finally:
-            os.chdir(cwd)
+            sys.path.pop()
+
+        canonical_name = canonicalize_name(distribution.get_name())
+        assert canonical_name == candidate_info.name, canonical_name
+
+        if distribution.setup_requires:
+            logger.warning('Package %s uses setup_requires; we cannot guarantee integrity.',
+                           distribution.get_fullname())
+
+        requires = distribution.install_requires
+        logger.debug('%s sdist requires: %r', candidate_info.name, requires)
+        return parse_requires_dist(requires)

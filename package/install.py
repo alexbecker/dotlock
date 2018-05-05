@@ -30,7 +30,9 @@ async def download_all(dir: str, requirements: List[dict]):
     ])
 
 
-async def install(venv_path: str, requirements: List[dict]):
+async def install(requirements: List[dict]):
+    venv_path = os.path.join(os.getcwd(), 'venv')
+
     with TemporaryDirectory(prefix='python-package-') as dir:
         await download_all(dir, requirements)
         for requirement in requirements:
