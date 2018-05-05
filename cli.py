@@ -38,5 +38,5 @@ if __name__ == '__main__':
         loop.run_until_complete(future)
         write_package_lock(package_json)
     if command == 'install':
-        package_lock = load_package_lock('package-lock.json')
+        package_lock = load_package_lock('package.lock.json')
         loop.run_until_complete(install('/home/alex/package/tmp', package_lock['default']))

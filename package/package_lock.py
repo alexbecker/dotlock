@@ -19,7 +19,7 @@ def candidate_list(requirements: List[Requirement]) -> List[Dict[str, str]]:
 
 
 def write_package_lock(package_json: PackageJSON):
-    with open('package-lock.json', 'w') as fp:
+    with open('package.lock.json', 'w') as fp:
         json.dump({
             'python_version': package_json.python_version,
             'default': candidate_list(package_json.default),
