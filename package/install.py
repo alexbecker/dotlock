@@ -38,18 +38,6 @@ async def install(venv_path: str, requirements: List[dict]):
             # pip won't find the file if its (potentially non-canonical) name
             # does not match the package name.
             filename = requirement['url'].split('/')[-1]
-            package_name = filename.split('-')[0]
-
-            """
-            if requirement['package_type'] == 'sdist':
-                process = await asyncio.subprocess.create_subprocess_exec(
-                    'pip', 'install', '--no-index',
-                    '--prefix', venv_path,
-                    '--find-links', dir,
-                    package_name,
-                )
-            else:
-            """
             process = await asyncio.subprocess.create_subprocess_exec(
                 'pip', 'install', '--no-index',
                 '--target', os.path.join(venv_path, 'lib/python3.6/site-packages/'),
