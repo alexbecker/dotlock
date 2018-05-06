@@ -18,6 +18,7 @@ setup(
     url='https://github.com/alexbecker/dotlock',
     description='Fast and accurate Python dependency management',
     long_description=README,
+    license='MIT',
     tests_require=[
         'pytest',
         'pytest-asyncio',
@@ -35,6 +36,7 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
