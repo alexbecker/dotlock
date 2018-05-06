@@ -1,3 +1,6 @@
 venv/
 .pytest_cache
 package.lock
+build
+dist
+dotlock.egg-info/
