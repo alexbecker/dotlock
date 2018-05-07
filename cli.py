@@ -3,12 +3,11 @@ import asyncio
 import logging
 import sys
 
-import virtualenv
-
 from dotlock.activate import activate
 from dotlock.graph import graph_resolution
 from dotlock.package_json import PackageJSON
 from dotlock.package_lock import write_package_lock, load_package_lock
+from dotlock.init import init
 from dotlock.install import install
 
 
@@ -33,7 +32,7 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
 
     if command == 'init':
-        virtualenv.create_environment('venv')
+        init()
     if command == 'activate':
         activate()
     if command == 'graph':

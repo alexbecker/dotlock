@@ -24,6 +24,9 @@ setup(
         'pytest-asyncio',
     ],
     py_modules=['dotlock'],
+    package_data={
+        'dotlock': ['package.skeleton.json'],
+    },
     install_requires=[
         'aiohttp>=3.1',
         'distlib',

@@ -1,0 +1,7 @@
+{
+    "sources": [
+        "https://pypi.org/pypi"
+    ],
+    "default": {
+    }
+}
