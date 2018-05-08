@@ -19,13 +19,15 @@ setup(
     description='Fast and accurate Python dependency management',
     long_description=README,
     license='MIT',
-    tests_require=[
-        'pytest',
-        'pytest-asyncio',
-    ],
-    py_modules=['dotlock'],
+    packages=['dotlock'],
     package_data={
         'dotlock': ['package.skeleton.json'],
+    },
+    entry_points={
+        'console_scripts': [
+            'dotlock = dotlock.__main__:main'
+        ],
+
     },
     install_requires=[
         'aiohttp>=3.1',
@@ -35,6 +37,12 @@ setup(
         'setuptools>=39.0',
         'virtualenv',
     ],
+    extras_require={
+        'test': [
+            'pytest',
+            'pytest-asyncio',
+        ],
+    },
     python_requires='>=3.6',
     classifiers=[
         'Development Status :: 3 - Alpha',

@@ -17,7 +17,7 @@ base_parser.add_argument('command', choices=['init', 'activate', 'graph', 'lock'
 base_parser.add_argument('args', nargs=argparse.REMAINDER, help='(varies by command)')
 
 
-if __name__ == '__main__':
+def main():
     logging.basicConfig()
 
     base_args = base_parser.parse_args(sys.argv[1:])
@@ -47,3 +47,7 @@ if __name__ == '__main__':
         package_lock = load_package_lock('package.lock.json')
         future = install(package_lock['default'])
         loop.run_until_complete(future)
+
+
+if __name__ == '__main__':
+    main()
