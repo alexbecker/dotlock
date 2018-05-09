@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 import json
 
 from packaging.specifiers import SpecifierSet
@@ -8,20 +8,23 @@ from dotlock.resolve import PackageType, RequirementInfo, Requirement, resolve_r
 
 
 class PackageJSON:
-    def __init__(self, python_version: str, sources: List[str], default: List[Requirement]):
-        self.python_version = python_version
+    def __init__(
+            self,
+            sources: List[str],
+            default: List[Requirement],
+            extras: Dict[str, List[Requirement]],
+    ):
         self.sources = sources
         self.default = default
+        self.extras = extras
 
     @staticmethod
     def load(file_path: str):
         with open(file_path) as fp:
             contents = json.load(fp)
 
-        return PackageJSON(
-            python_version=contents['python'],
-            sources=contents['sources'],
-            default=[
+        def parse_requirements(requirement_dicts: Dict[str, str]):
+            return [
                 Requirement(
                     info=RequirementInfo(
                         name=canonicalize_name(name),
@@ -30,13 +33,29 @@ class PackageJSON:
                         marker=None,
                     ),
                     parent=None,
-                ) for name, specifier in contents['default'].items()
-            ],
+                ) for name, specifier in requirement_dicts.items()
+            ]
+
+        return PackageJSON(
+            sources=contents['sources'],
+            default=parse_requirements(contents['default']),
+            extras={
+                key: parse_requirements(reqs)
+                for key, reqs in contents['extras'].items()
+            },
         )
 
-    async def resolve_default(self):
-        return await resolve_requirements_list(
+    async def resolve(self):
+        # Resolve for all extras simultaneously to prevent conflicts.
+        requirements = self.default
+        for reqs in self.extras.values():
+            requirements.extend(reqs)
+
+        # Since resolve_requirements_list sets each Requirement's candidates,
+        # and we did not deep copy when building the requirements list, this
+        # modifies every Requirement in self.default and self.extras.
+        await resolve_requirements_list(
             package_types=[PackageType.bdist_wheel, PackageType.sdist],  # FIXME: this is pretty arbitrary
             sources=self.sources,
-            requirements=self.default,
+            requirements=requirements,
         )

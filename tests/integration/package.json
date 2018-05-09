@@ -1,0 +1,15 @@
+{
+    "sources": [
+        "https://pypi.org/pypi"
+    ],
+    "default": {
+        "aiohttp": ">=3.1.0,<3.2"
+    },
+    "extras": {
+        "tests": {
+            "aiohttp": ">3.1.0",
+            "pytest": "<3.5",
+            "pytest-aiohttp": "==0.3.0"
+        }
+    }
+}
