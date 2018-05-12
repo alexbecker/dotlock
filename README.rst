@@ -21,10 +21,13 @@ by running a single command: ``dotlock lock``.
 Dotlock is partly inspired by `pipenv <https://pypi.org/project/pipenv/>`_, which also provides
 dependency-locking functionality. However, dotlock attempts to improve over ``pipenv`` in
 the following ways:
+
 * Accuracy: ``pipenv`` only locks to the level of versions, not specific distributions.
-This is why a ``Pipfile.lock`` will often contain multiple hashes for the same dependency,
-and means you do not know exactly what distribution will be installed when you run ``pipenv lock``.
+  This is why a ``Pipfile.lock`` will often contain multiple hashes for the same dependency,
+  and means you do not know exactly what distribution will be installed when you run ``pipenv lock``.
+
 * Speed: ``pipenv lock`` is very slow in my experience.
+
 * Reliability: ``pipenv`` does a lot of stuff, but it also has a lot of bugs.
 
 Under the hood, ``pipenv`` is essentially a complicated wrapper for ``pip``, relying on it
