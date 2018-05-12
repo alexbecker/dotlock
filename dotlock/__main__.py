@@ -28,7 +28,7 @@ def main():
     args = base_args.args
 
     if base_args.debug:
-        logging.getLogger('package').setLevel(logging.DEBUG)
+        logging.getLogger('dotlock').setLevel(logging.DEBUG)
 
     package_json = PackageJSON.load('package.json')
 
