@@ -6,6 +6,9 @@ from dotlock import resolve
 from dotlock.tempdir import temp_working_dir
 
 
+import logging; logging.getLogger('dotlock').setLevel(logging.DEBUG)
+
+
 @pytest.fixture(name='aiohttp_resolved_requirements')
 async def resolve_aiohttp_requirements():
     requirements = [
@@ -13,7 +16,7 @@ async def resolve_aiohttp_requirements():
             info=resolve.RequirementInfo(
                 name='aiohttp',
                 specifier=SpecifierSet('==3.1.2'),
-                extra=None,
+                extras=tuple(),
                 marker=None,
             ),
             parent=None,

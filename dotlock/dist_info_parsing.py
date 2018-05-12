@@ -1,5 +1,6 @@
 from collections import namedtuple
 from enum import IntEnum, auto
+from sqlite3 import Connection
 from typing import List
 import re
 import logging
@@ -17,9 +18,6 @@ from dotlock.pep425tags import get_supported
 
 logger = logging.getLogger(__name__)
 
-requirement_info_cache = {}
-candidate_info_cache = {}
-
 
 class PackageType(IntEnum):
     bdist_wininst = auto()
@@ -32,12 +30,13 @@ class PackageType(IntEnum):
 
 class RequirementInfo(namedtuple(
         '_RequirementInfo',
-        ('name', 'specifier', 'extra', 'marker'),
+        ('name', 'specifier', 'extras', 'marker'),
     )):
     def __str__(self):
         result = self.name
-        if self.extra:
-            result += f'[{self.extra}]'
+        if self.extras:
+            extras = ','.join(self.extras)
+            result += f'[{extras}]'
         specifier_str = str(self.specifier) if self.specifier else '*'
         if self.marker:
             specifier_str += f'; {self.marker}'
@@ -49,21 +48,21 @@ class RequirementInfo(namedtuple(
             self,
             package_types: List[PackageType],
             sources: List[str],
+            connection: Connection,
             session: ClientSession,
     ):
-        if self not in candidate_info_cache:
+        from dotlock.caching import get_cached_candidate_infos, set_cached_candidate_infos
+        candidate_infos = get_cached_candidate_infos(connection, self.name)
+        if candidate_infos is None:
             source, base_metadata = await get_source_and_base_metadata(sources, session, self.name)
 
-            candidate_info_cache[self] = []
+            candidate_infos = []
             for version_str, distributions in base_metadata['releases'].items():
                 try:
                     version = Version(version_str)
                 except InvalidVersion:
                     logger.info('Invalid version for %r: %s', self, version_str)
                     continue  # Skip candidates without a valid version.
-
-                if self.specifier and not self.specifier.contains(version):
-                    continue  # Skip candidates whose versions don't satisfy the requirement.
 
                 for distribution in distributions:
                     package_type = PackageType[distribution['packagetype']]
@@ -82,7 +81,7 @@ class RequirementInfo(namedtuple(
                         continue
 
                     sha256 = distribution['digests']['sha256']
-                    candidate_info_cache[self].append(CandidateInfo(
+                    candidate_infos.append(CandidateInfo(
                         name=self.name,
                         version=version,
                         package_type=package_type,
@@ -91,21 +90,29 @@ class RequirementInfo(namedtuple(
                         sha256=sha256,
                     ))
 
-            if not candidate_info_cache[self]:
-                raise NoMatchingCandidateError(self)
+            set_cached_candidate_infos(connection, candidate_infos)
 
-        return candidate_info_cache[self]
+        candidate_infos = [
+            c for c in candidate_infos
+            if self.specifier is None or self.specifier.contains(c.version)
+        ]
+        if not candidate_infos:
+            raise NoMatchingCandidateError(self)
+
+        return candidate_infos
 
 
 class CandidateInfo(namedtuple(
         '_CandidateInfo',
         ('name', 'version', 'package_type', 'source', 'url', 'sha256')
     )):
-    async def get_requirement_infos(self, session: ClientSession):
+    async def get_requirement_infos(self, connection: Connection, session: ClientSession):
         from dotlock.bdist_wheel_handling import get_bdist_wheel_requirements
         from dotlock.sdist_handling import get_sdist_requirements
+        from dotlock.caching import get_cached_requirement_infos, set_cached_requirement_infos
 
-        if self not in requirement_info_cache:
+        requirement_infos = get_cached_requirement_infos(connection, self)
+        if requirement_infos is None:
             if self.package_type == PackageType.sdist:
                 # PyPI does not list dependencies for sdists; they must be downloaded.
                 requirement_infos = await get_sdist_requirements(session, self)
@@ -119,9 +126,9 @@ class CandidateInfo(namedtuple(
                     # If the dependencies are null, assume PyPI just doesn't know about them.
                     requirement_infos = await get_bdist_wheel_requirements(session, self)
 
-            requirement_info_cache[self] = requirement_infos
+            set_cached_requirement_infos(connection, self, requirement_infos)
 
-        return requirement_info_cache[self]
+        return requirement_infos
 
 
 # Regex for parsing wheel filenames per https://www.python.org/dev/peps/pep-0427/#file-name-convention
@@ -142,10 +149,9 @@ def parse_requires_dist(requirement_lines: List[str]) -> List[RequirementInfo]:
     requirements = []
     for line in requirement_lines:
         r = PackagingRequirement(line)
-        extra = list(r.extras)[0] if r.extras else None  # FIXME: handle multiple extras?
         marker = Marker(str(r.marker)) if r.marker else None  # Cast to our Marker subclass
         requirements.append(
-            RequirementInfo(canonicalize_name(r.name), r.specifier, extra, marker)
+            RequirementInfo(canonicalize_name(r.name), r.specifier, tuple(r.extras), marker)
         )
 
     return requirements

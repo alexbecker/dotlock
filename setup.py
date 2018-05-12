@@ -21,7 +21,10 @@ setup(
     license='MIT',
     packages=['dotlock'],
     package_data={
-        'dotlock': ['package.skeleton.json'],
+        'dotlock': [
+            'cache_schema.sql',
+            'package.skeleton.json',
+        ],
     },
     entry_points={
         'console_scripts': [

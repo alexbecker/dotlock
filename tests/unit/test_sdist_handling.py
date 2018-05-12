@@ -22,5 +22,5 @@ async def test_get_wheel_file_requirements():
         requirements = await get_sdist_file_requirements('idna-ssl', idna_ssl_archive_path)
 
     assert requirements == [
-        RequirementInfo(name='idna', specifier=SpecifierSet('>=2.0'), extra=None, marker=None)
+        RequirementInfo(name='idna', specifier=SpecifierSet('>=2.0'), extras=tuple(), marker=None)
     ]

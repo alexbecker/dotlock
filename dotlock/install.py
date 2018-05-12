@@ -44,6 +44,7 @@ async def install(requirements: List[dict]):
                 'pip', 'install', '--no-index',
                 '--target', os.path.join(venv_path, 'lib/python3.6/site-packages/'),
                 '--find-links', dir,
+                '--upgrade',
                 os.path.join(dir, filename),
             )
 

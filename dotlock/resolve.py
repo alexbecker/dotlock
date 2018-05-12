@@ -1,4 +1,5 @@
 """Code for resolving requirements into concrete versions."""
+from sqlite3 import Connection
 from typing import List, Optional, Iterable, Set, Dict
 import logging
 import asyncio
@@ -6,6 +7,7 @@ import asyncio
 from aiohttp import ClientSession, TCPConnector
 from packaging.specifiers import SpecifierSet
 
+from dotlock.caching import connect_to_cache
 from dotlock.dist_info_parsing import PackageType, RequirementInfo, CandidateInfo
 from dotlock.exceptions import CircularDependencyError
 
@@ -40,6 +42,7 @@ class Requirement:
             self,
             package_types: List[PackageType],
             sources: List[str],
+            connection: Connection,
             session: ClientSession,
     ) -> None:
         """
@@ -48,11 +51,14 @@ class Requirement:
         Args:
             package_types: Allowed PackageTypes for candidates.
             sources: Base URLs for PyPI-like package repositories.
+            connection: Sqlite3 connection to the cache database.
             session: Async session to use for HTTP requests.
         """
-        candidate_infos = await self.info.get_candidate_infos(package_types, sources, session)
+        candidate_infos = await self.info.get_candidate_infos(
+            package_types, sources, connection, session,
+        )
         for candidate_info in candidate_infos:
-            extras = {self.info.extra} if self.info.extra else set()
+            extras = set(self.info.extras)
             self.candidates[candidate_info] = Candidate(candidate_info, self, extras)
 
 
@@ -68,14 +74,15 @@ class Candidate:
         self.live = False
         self.requirements: Dict[RequirementInfo: Requirement] = {}
 
-    async def set_requirements(self, session: ClientSession):
+    async def set_requirements(self, connection: Connection, session: ClientSession):
         """
         Populates self.requirements. Does not populate candidates for these requirements.
 
         Args:
+            connection: Sqlite3 connection to the cache database.
             session: Async session to use for HTTP requests.
         """
-        requirement_infos = await self.info.get_requirement_infos(session)
+        requirement_infos = await self.info.get_requirement_infos(connection, session)
         for requirement_info in requirement_infos:
             # Skip any requirements that do not apply to the current environment
             # or are for extras we do not want for this candidate.
@@ -117,12 +124,13 @@ def _iter_live_candidates(base_requirements: Iterable[Requirement], name: str) -
 async def _resolve_requirement_list(
         package_types: List[PackageType],
         sources: List[str],
+        connection: Connection,
         session: ClientSession,
         base_requirements: List[Requirement],
         requirements: List[Requirement],
 ) -> None:
     await asyncio.gather(*[
-        requirement.set_candidates(package_types, sources, session)
+        requirement.set_candidates(package_types, sources, connection, session)
         for requirement in requirements
     ])
 
@@ -130,7 +138,10 @@ async def _resolve_requirement_list(
         logger.debug('Resolving %r', requirement.info)
 
         live_candidates = list(_iter_live_candidates(base_requirements, requirement.info.name))
-        if live_candidates:
+        if not live_candidates:
+            logger.debug('New package %s discovered.', requirement.info.name)
+            candidate_info = sorted(requirement.candidates, reverse=True)[0]
+        else:
             # Note that all live candidates for a given name will have identical CandidateInfo.
             live_candidate_infos = {c.info for c in live_candidates}
             assert len(live_candidate_infos) == 1
@@ -163,30 +174,27 @@ async def _resolve_requirement_list(
                     new_candidate.live = True
                     # Since we will ultimately only install one copy of Candidate,
                     # all of them need to have the full set of extras.
-                    if requirement.info.extra:
-                        new_candidate.extras.add(requirement.info.extra)
+                    new_candidate.extras.update(requirement.info.extras)
                     # Re-resolve this branch of the tree since we selected a new candidate.
                     # Should be fast since the caches will be hot.
-                    await new_candidate.set_requirements(session=session)
+                    await new_candidate.set_requirements(connection=connection, session=session)
                     await _resolve_requirement_list(
                         package_types=package_types,
                         sources=sources,
+                        connection=connection,
                         session=session,
                         base_requirements=base_requirements,
                         requirements=list(new_candidate.requirements.values()),
                     )
-        else:
-            logger.debug('New package %s discovered.', requirement.info.name)
-            candidate_info = sorted(requirement.candidates, reverse=True)[0]
 
         candidate = requirement.candidates[candidate_info]
         candidate.live = True
-        if requirement.info.extra:
-            candidate.extras.add(requirement.info.extra)
-        await candidate.set_requirements(session=session)
+        candidate.extras.update(requirement.info.extras)
+        await candidate.set_requirements(connection=connection, session=session)
         await _resolve_requirement_list(
             package_types=package_types,
             sources=sources,
+            connection=connection,
             session=session,
             base_requirements=base_requirements,
             requirements=list(candidate.requirements.values()),
@@ -206,12 +214,14 @@ async def resolve_requirements_list(
         sources: Base URLs for PyPI-like package repositories.
         requirements: Unpopulated list of requirements, e.g. just parsed from package.json.
     """
+    cache_connection = connect_to_cache()
     # Too many connections results in '(104) Connection reset by peer' errors.
     connector = TCPConnector(limit=10)  # 10 is arbitrary; could probably be raised.
     async with ClientSession(connector=connector) as session:
         await _resolve_requirement_list(
             package_types=package_types,
             sources=sources,
+            connection=cache_connection,
             session=session,
             base_requirements=requirements,
             requirements=requirements,

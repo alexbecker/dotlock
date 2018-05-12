@@ -29,7 +29,7 @@ class PackageJSON:
                     info=RequirementInfo(
                         name=canonicalize_name(name),
                         specifier=SpecifierSet(specifier) if specifier != '*' else None,
-                        extra=None,
+                        extras=tuple(),
                         marker=None,
                     ),
                     parent=None,

@@ -28,7 +28,7 @@ async def test_certbot():
             info=resolve.RequirementInfo(
                 name='certbot',
                 specifier=SpecifierSet('==0.23.0'),
-                extra=None,
+                extras=tuple(),
                 marker=None,
             ),
             parent=None,

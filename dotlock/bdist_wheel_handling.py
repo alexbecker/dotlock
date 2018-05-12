@@ -52,14 +52,13 @@ def get_wheel_file_requirements(filename: str) -> List[RequirementInfo]:
     rv = []
     parsed_requirements = parse_requirements(requirement_lines)
     for r in parsed_requirements:
-        extra = r.extras[0] if r.extras else None
         # pkg_resources vendors packaging so we have to change the type so comparisons work
         specifier = SpecifierSet(str(r.specifier))
         marker = Marker(str(r.marker)) if r.marker else None
         rv.append(RequirementInfo(
             name=canonicalize_name(r.name),
             specifier=specifier,
-            extra=extra,
+            extras=tuple(r.extras),
             marker=marker,
         ))
 
