@@ -5,10 +5,10 @@ from typing import List, Optional
 
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
-from pip._internal.utils.appdirs import user_cache_dir
 
 from dotlock.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType
 from dotlock.markers import Marker
+from dotlock._vendored.appdirs import user_cache_dir
 
 
 logger = logging.getLogger(__name__)

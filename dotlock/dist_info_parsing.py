@@ -13,7 +13,7 @@ from packaging.version import Version, InvalidVersion
 from dotlock.api_requests import get_source_and_base_metadata, get_version_metadata
 from dotlock.exceptions import NoMatchingCandidateError
 from dotlock.markers import Marker
-from dotlock.pep425tags import get_supported
+from dotlock._vendored.pep425tags import get_supported
 
 
 logger = logging.getLogger(__name__)
