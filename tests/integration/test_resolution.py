@@ -76,3 +76,39 @@ async def test_certbot():
         'acme',
         'certbot',
     ]
+
+
+@pytest.mark.asyncio
+async def test_pyrfc3339():
+    """
+    Test a package that has a bdist but where PyPI requires_dist is missing.
+    """
+    requirements = [
+        resolve.Requirement(
+            info=resolve.RequirementInfo(
+                name='pyrfc3339',
+                specifier=SpecifierSet('==1.0'),
+                extras=tuple(),
+                marker=None,
+            ),
+            parent=None,
+        ),
+    ]
+    await resolve.resolve_requirements_list(
+        requirements=requirements,
+        package_types=[
+            resolve.PackageType.bdist_wheel,
+            resolve.PackageType.sdist,
+        ],
+        sources=[
+            'https://pypi.org/pypi',
+        ],
+        update=False,
+    )
+    candidates = resolve.candidate_topo_sort(requirements)
+    candidate_names = [candidate.info.name for candidate in candidates]
+
+    assert candidate_names == [
+        'pytz',
+        'pyrfc3339',
+    ]
