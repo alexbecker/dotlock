@@ -30,6 +30,9 @@ the following ways:
 
 * Reliability: ``pipenv`` does a lot of stuff, but it also has a lot of bugs.
 
+* Extras Support: ``pipenv`` only supports "default" dependencies and "dev" dependencies;
+  ``dotlock`` supports arbitrary extra dependency groups, e.g. ``dotlock install --extras tests``.
+
 Under the hood, ``pipenv`` is essentially a complicated wrapper for ``pip``, relying on it
 for metadata discovery and extraction, dependency resolution, dependency downloading and installation.
 To improve on ``pipenv``, ``dotlock`` handles most of these itself, relying on ``pip`` only to install
@@ -52,6 +55,8 @@ Then on both development and deployed machines, run:
     dotlock install   # Installs exactly the distributions in package.lock.json.
     dotlock activate  # Enters the virtualenv.
 
+For more information, run ``dotlock -h`` or ``dotlock [command] -h``.
+
 package.json example
 --------------------
 
@@ -69,5 +74,42 @@ package.json example
             // Multiple specifiers can be separated by commas, e.g. ">=2.1,<3.0".
             "setuptools": ">=39.0",
             "virtualenv": "*"
+        },
+        "extras": {
+            // You can specify groups of additional dependencies that will be installed by
+            // dotlock install --extras [names]
+            "dev": {
+                "ipython": "*"
+            },
+            "tests": {
+                "pytest": "*"
+            }
         }
     }
+
+Roadmap and Limitations
+-----------------------
+
+Planned features:
+
+* Caching breaks if you run for multiple platforms and python versions: target ``0.2.1``
+
+* VCS dependencies (git, svn, hg): target ``0.3.0``
+
+* Concurrent package downloads in ``dotlock install``: target ``0.3.0``
+
+* Local dependencies: target ``0.4.0``
+
+* Richer specifier support: target ``0.5.0``
+
+Features under consideration:
+
+* Support virtualenvs other than ``./venv``
+
+* Support versions of Python before 3.6
+
+Features you might want but are not planned:
+
+* Support locking for other platforms. This is not possible to do with perfect reliability,
+  since the dependencies discovered by running ``setup.py`` may differ depending on what
+  platform the script is run on.
