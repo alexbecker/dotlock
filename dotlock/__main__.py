@@ -16,13 +16,22 @@ base_parser.add_argument('--debug', action='store_true', default=False)
 base_parser.add_argument('command', choices=['init', 'activate', 'graph', 'lock', 'install'])
 base_parser.add_argument('args', nargs=argparse.REMAINDER, help='(varies by command)')
 
-graph_parser = argparse.ArgumentParser(description='Prints the dependency tree of package.lock.')
+graph_parser = argparse.ArgumentParser(
+    prog='dotlock graph',
+    description='Prints the dependency tree of package.lock.',
+)
 graph_parser.add_argument('--update', action='store_true', default=False)
 
-lock_parser = argparse.ArgumentParser(description='Update package.lock.json.')
+lock_parser = argparse.ArgumentParser(
+    prog='dotlock lock',
+    description='Update package.lock.json.',
+)
 lock_parser.add_argument('--update', action='store_true', default=False)
 
-install_parser = argparse.ArgumentParser(description='Install dependencies from package.lock.json.')
+install_parser = argparse.ArgumentParser(
+    prog='dotlock install',
+    description='Install dependencies from package.lock.json.',
+)
 install_parser.add_argument('--extras', nargs='+', default=[])
 
 
