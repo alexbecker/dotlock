@@ -43,6 +43,7 @@ async def test_certbot():
         sources=[
             'https://pypi.org/pypi',
         ],
+        update=False,
     )
     candidates = resolve.candidate_topo_sort(requirements)
     candidate_names = [candidate.info.name for candidate in candidates]

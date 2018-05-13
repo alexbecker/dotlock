@@ -44,6 +44,7 @@ class Requirement:
             sources: List[str],
             connection: Connection,
             session: ClientSession,
+            update: bool,
     ) -> None:
         """
         Populates self.candidates. Does not populate requirements for these candidates.
@@ -55,7 +56,7 @@ class Requirement:
             session: Async session to use for HTTP requests.
         """
         candidate_infos = await self.info.get_candidate_infos(
-            package_types, sources, connection, session,
+            package_types, sources, connection, session, update,
         )
         for candidate_info in candidate_infos:
             extras = set(self.info.extras)
@@ -128,9 +129,10 @@ async def _resolve_requirement_list(
         session: ClientSession,
         base_requirements: List[Requirement],
         requirements: List[Requirement],
+        update: bool,
 ) -> None:
     await asyncio.gather(*[
-        requirement.set_candidates(package_types, sources, connection, session)
+        requirement.set_candidates(package_types, sources, connection, session, update)
         for requirement in requirements
     ])
 
@@ -185,6 +187,7 @@ async def _resolve_requirement_list(
                         session=session,
                         base_requirements=base_requirements,
                         requirements=list(new_candidate.requirements.values()),
+                        update=update,
                     )
 
         candidate = requirement.candidates[candidate_info]
@@ -198,6 +201,7 @@ async def _resolve_requirement_list(
             session=session,
             base_requirements=base_requirements,
             requirements=list(candidate.requirements.values()),
+            update=update,
         )
 
 
@@ -205,6 +209,7 @@ async def resolve_requirements_list(
         package_types: List[PackageType],
         sources: List[str],
         requirements: List[Requirement],
+        update: bool,
 ) -> None:
     """
     Populates requirements.candidates, recursively, selecting a unique Candidate up to name.
@@ -213,6 +218,7 @@ async def resolve_requirements_list(
         package_types: Allowed PackageTypes for candidates.
         sources: Base URLs for PyPI-like package repositories.
         requirements: Unpopulated list of requirements, e.g. just parsed from package.json.
+        update: Whether to bypass the cache when finding candidates.
     """
     cache_connection = connect_to_cache()
     # Too many connections results in '(104) Connection reset by peer' errors.
@@ -225,6 +231,7 @@ async def resolve_requirements_list(
             session=session,
             base_requirements=requirements,
             requirements=requirements,
+            update=update,
         )
 
 

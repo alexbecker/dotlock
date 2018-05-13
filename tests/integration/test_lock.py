@@ -12,7 +12,7 @@ async def test_lock():
     testfile_path = str(Path(__file__).parent / Path('package.json'))
     package_json = PackageJSON.load(testfile_path)
 
-    await package_json.resolve()
+    await package_json.resolve(update=False)
 
     lock_data = package_lock_data(package_json)
 

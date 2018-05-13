@@ -31,6 +31,7 @@ async def resolve_aiohttp_requirements():
         sources=[
             'https://pypi.org/pypi',
         ],
+        update=False,
     )
     return requirements
 

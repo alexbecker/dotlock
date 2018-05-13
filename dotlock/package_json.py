@@ -45,7 +45,7 @@ class PackageJSON:
             },
         )
 
-    async def resolve(self):
+    async def resolve(self, update: bool):
         # Resolve for all extras simultaneously to prevent conflicts.
         requirements = self.default
         for reqs in self.extras.values():
@@ -58,4 +58,5 @@ class PackageJSON:
             package_types=[PackageType.bdist_wheel, PackageType.sdist],  # FIXME: this is pretty arbitrary
             sources=self.sources,
             requirements=requirements,
+            update=update,
         )

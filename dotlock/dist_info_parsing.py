@@ -50,9 +50,14 @@ class RequirementInfo(namedtuple(
             sources: List[str],
             connection: Connection,
             session: ClientSession,
+            update: bool,
     ):
         from dotlock.caching import get_cached_candidate_infos, set_cached_candidate_infos
-        candidate_infos = get_cached_candidate_infos(connection, self.name)
+
+        candidate_infos = None
+        if not update:
+            candidate_infos = get_cached_candidate_infos(connection, self.name)
+
         if candidate_infos is None:
             source, base_metadata = await get_source_and_base_metadata(sources, session, self.name)
 

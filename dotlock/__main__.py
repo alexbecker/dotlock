@@ -16,6 +16,12 @@ base_parser.add_argument('--debug', action='store_true', default=False)
 base_parser.add_argument('command', choices=['init', 'activate', 'graph', 'lock', 'install'])
 base_parser.add_argument('args', nargs=argparse.REMAINDER, help='(varies by command)')
 
+graph_parser = argparse.ArgumentParser(description='Prints the dependency tree of package.lock.')
+graph_parser.add_argument('--update', action='store_true', default=False)
+
+lock_parser = argparse.ArgumentParser(description='Update package.lock.json.')
+lock_parser.add_argument('--update', action='store_true', default=False)
+
 install_parser = argparse.ArgumentParser(description='Install dependencies from package.lock.json.')
 install_parser.add_argument('--extras', nargs='+', default=[])
 
@@ -39,11 +45,15 @@ def main():
     if command == 'activate':
         activate()
     if command == 'graph':
-        future = package_json.resolve()
+        graph_args = graph_parser.parse_args(args)
+
+        future = package_json.resolve(update=graph_args.update)
         loop.run_until_complete(future)
         graph_resolution(package_json.default)
     if command == 'lock':
-        future = package_json.resolve()
+        lock_args = lock_parser.parse_args(args)
+
+        future = package_json.resolve(update=lock_args.update)
         loop.run_until_complete(future)
         write_package_lock(package_json)
     if command == 'install':
