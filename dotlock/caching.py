@@ -1,7 +1,7 @@
 import logging
 import sqlite3
 from pathlib import Path
-from typing import List, Optional
+from typing import Iterable, List, Optional
 
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
@@ -12,6 +12,10 @@ from dotlock._vendored.appdirs import user_cache_dir
 
 
 logger = logging.getLogger(__name__)
+
+setup_script_path = Path(__file__).parent / Path('cache_schema.sql')
+with setup_script_path.open() as fp:
+    setup_script = fp.read()
 
 
 def connect_to_cache():
@@ -24,9 +28,6 @@ def connect_to_cache():
     conn = sqlite3.connect(str(cache_db_path))
 
     if not exists:
-        setup_script_path = Path(__file__).parent / Path('cache_schema.sql')
-        with setup_script_path.open() as fp:
-            setup_script = fp.read()
         conn.executescript(setup_script)
 
     return conn
@@ -58,7 +59,7 @@ def get_cached_candidate_infos(
 
 def set_cached_candidate_infos(
         connection: sqlite3.Connection,
-        candidate_infos: List[CandidateInfo],
+        candidate_infos: Iterable[CandidateInfo],
 ):
     for c in candidate_infos:
         connection.execute(
@@ -109,7 +110,7 @@ def get_cached_requirement_infos(
 def set_cached_requirement_infos(
         connection: sqlite3.Connection,
         candidate_info: CandidateInfo,
-        requirement_infos: List[RequirementInfo],
+        requirement_infos: Iterable[RequirementInfo],
 ):
     for r in requirement_infos:
         connection.execute(
