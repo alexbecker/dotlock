@@ -92,21 +92,31 @@ Roadmap and Limitations
 
 Planned features:
 
-* Caching breaks if you run for multiple platforms and python versions: target ``0.2.1``
+* Fix caching for multiple platforms/python versions: target ``0.2.1``
+
+* Error on installing from a lockfile for the wrong platform/python version: target ``0.2.2``
 
 * VCS dependencies (git, svn, hg): target ``0.3.0``
 
 * Concurrent package downloads in ``dotlock install``: target ``0.3.0``
 
+* CI testing: target ``0.4.0``
+
 * Local dependencies: target ``0.4.0``
 
 * Richer specifier support: target ``0.5.0``
+
+* Comments in ``package.json``: target ``0.5.0``
+
+* Support/CI testing on non-linux platforms: target ``1.0.0``
 
 Features under consideration:
 
 * Support virtualenvs other than ``./venv``
 
 * Support versions of Python before 3.6
+
+* Integration with ``wheelhouse`` or similar dependency-bundling functionality
 
 Features you might want but are not planned:
 
