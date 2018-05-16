@@ -92,21 +92,23 @@ Roadmap and Limitations
 
 Planned features:
 
-* Fix caching for multiple platforms/python versions: target ``0.2.1``
+* Fix caching for multiple platforms/python versions: target ``0.2.3``
 
-* Error on installing from a lockfile for the wrong platform/python version: target ``0.2.2``
+* Error on installing from a lockfile for the wrong platform/python version: target ``0.2.4``
 
-* VCS dependencies (git, svn, hg): target ``0.3.0``
+* Handle non-PyPI `PEP 503 <https://www.python.org/dev/peps/pep-0503/>`_ compliant package indices: target ``0.3.0``
 
-* Concurrent package downloads in ``dotlock install``: target ``0.3.0``
+* VCS dependencies (git, svn, hg): target ``0.4.0``
+
+* Concurrent package downloads in ``dotlock install``: target ``0.4.0``
 
 * CI testing: target ``0.4.0``
 
-* Local dependencies: target ``0.4.0``
+* Local dependencies: target ``0.5.0``
 
-* Richer specifier support: target ``0.5.0``
+* Richer specifier support: target ``0.6.0``
 
-* Comments in ``package.json``: target ``0.5.0``
+* Comments in ``package.json``: target ``0.6.0``
 
 * Support/CI testing on non-linux platforms: target ``1.0.0``
 
