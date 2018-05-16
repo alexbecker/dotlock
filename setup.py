@@ -19,7 +19,10 @@ setup(
     description='Fast and accurate Python dependency management',
     long_description=README,
     license='MIT',
-    packages=['dotlock'],
+    packages=[
+        'dotlock',
+        'dotlock._vendored',
+    ],
     package_data={
         'dotlock': [
             'cache_schema.sql',
@@ -38,6 +41,7 @@ setup(
         'packaging',
         'pip>=9.0',
         'setuptools>=39.0',
+        'six',
         'virtualenv',
     ],
     extras_require={
