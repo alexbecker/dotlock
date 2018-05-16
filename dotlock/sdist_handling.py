@@ -72,19 +72,25 @@ async def get_sdist_requirements(session: ClientSession, candidate_info: Candida
 async def get_sdist_file_requirements(candidate_name: str, filename: str) -> List[RequirementInfo]:
     # Extract the file.
     if filename.endswith('.tar.gz'):
-        tar_process = await asyncio.create_subprocess_exec(
+        ext = '.tar.gz'
+        subprocess = await asyncio.create_subprocess_exec(
             'tar', '-xf', filename,
         )
-        await tar_process.wait()
-        extracted_dir = filename[:-len('.tar.gz')]
+    elif filename.endswith('.tar.bz2'):
+        ext = '.tar.bz2'
+        subprocess = await asyncio.create_subprocess_exec(
+            'tar', '-xf', filename,
+        )
     elif filename.endswith('.zip'):
-        zip_process = await asyncio.create_subprocess_exec(
+        ext = '.zip'
+        subprocess = await asyncio.create_subprocess_exec(
             'unzip', filename,
         )
-        await zip_process.wait()
-        extracted_dir = filename[:-len('.zip')]
     else:
         raise ValueError('Unrecognized archive format: %s', filename)
+
+    await subprocess.wait()
+    extracted_dir = filename[:-len(ext)]
 
     # CD into the extracted directory.
     # Necessary since some setup.py files expect to run from this directory.
