@@ -1,6 +1,8 @@
 venv/
 .pytest_cache
-package.lock
+/package.lock.json
 build
 dist
 dotlock.egg-info/
+.cache/
+.tox/

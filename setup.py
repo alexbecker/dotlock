@@ -1,7 +1,7 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
-with open('dotlock/__init__.py') as fp:
+with open('src/dotlock/__init__.py') as fp:
     # defines __version__
     exec(fp.read())
 
@@ -19,10 +19,8 @@ setup(
     description='Fast and accurate Python dependency management',
     long_description=README,
     license='MIT',
-    packages=[
-        'dotlock',
-        'dotlock._vendored',
-    ],
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
     package_data={
         'dotlock': [
             'cache_schema.sql',
@@ -45,7 +43,7 @@ setup(
         'virtualenv',
     ],
     extras_require={
-        'test': [
+        'tests': [
             'pytest',
             'pytest-asyncio',
         ],

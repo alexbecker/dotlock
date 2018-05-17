@@ -22,7 +22,7 @@ async def test_aiohttp(aiohttp_resolved_requirements):
 
 
 @pytest.mark.asyncio
-async def test_certbot():
+async def test_certbot(loop):
     requirements = [
         resolve.Requirement(
             info=resolve.RequirementInfo(
@@ -79,7 +79,7 @@ async def test_certbot():
 
 
 @pytest.mark.asyncio
-async def test_pyrfc3339():
+async def test_pyrfc3339(loop):
     """
     Test a package that has a bdist but where PyPI requires_dist is missing.
     """

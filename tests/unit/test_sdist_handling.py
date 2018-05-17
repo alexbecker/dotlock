@@ -10,7 +10,7 @@ from dotlock.tempdir import temp_working_dir
 
 
 @pytest.mark.asyncio
-async def test_get_wheel_file_requirements():
+async def test_get_wheel_file_requirements(loop):
     idna_ssl_archive_name = 'idna-ssl-1.0.1.tar.gz'
     idna_ssl_archive_path = str(Path(__file__).parent / Path(idna_ssl_archive_name))
 

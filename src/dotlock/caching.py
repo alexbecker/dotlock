@@ -9,6 +9,7 @@ from packaging.version import Version
 from dotlock.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType
 from dotlock.markers import Marker
 from dotlock._vendored.appdirs import user_cache_dir
+from dotlock._vendored.pep425tags import get_impl_tag, get_abi_tag, get_platform
 
 
 logger = logging.getLogger(__name__)
@@ -18,12 +19,20 @@ with setup_script_path.open() as fp:
     setup_script = fp.read()
 
 
+def cache_filename():
+    schema_version = '0.1'
+    impl = get_impl_tag()
+    abi = get_abi_tag()
+    platform = get_platform()
+    return f'cache-{schema_version}-{impl}-{abi}-{platform}.sqlite'
+
+
 def connect_to_cache():
     cache_dir = Path(user_cache_dir('dotlock'))
     if not cache_dir.exists():
         cache_dir.mkdir()
 
-    cache_db_path = cache_dir / Path('cache.sqlite3')
+    cache_db_path = cache_dir / Path(cache_filename())
     exists = cache_db_path.exists()
     conn = sqlite3.connect(str(cache_db_path))
 

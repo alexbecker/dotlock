@@ -10,7 +10,7 @@ import logging; logging.getLogger('dotlock').setLevel(logging.DEBUG)
 
 
 @pytest.fixture(name='aiohttp_resolved_requirements')
-async def resolve_aiohttp_requirements():
+async def resolve_aiohttp_requirements(loop):
     requirements = [
         resolve.Requirement(
             info=resolve.RequirementInfo(
