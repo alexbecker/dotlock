@@ -229,5 +229,8 @@
             }
         ]
     },
-    "python_version": "3.6.4"
+    "abi": "cp36m",
+    "manylinux1": true,
+    "platform": "linux_x86_64",
+    "python": "cp36"
 }

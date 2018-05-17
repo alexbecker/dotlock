@@ -9,7 +9,7 @@ from packaging.version import Version
 from dotlock.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType
 from dotlock.markers import Marker
 from dotlock._vendored.appdirs import user_cache_dir
-from dotlock._vendored.pep425tags import get_impl_tag, get_abi_tag, get_platform
+from dotlock._vendored.pep425tags import get_impl_tag, get_abi_tag, get_platform, is_manylinux1_compatible
 
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,8 @@ def cache_filename():
     impl = get_impl_tag()
     abi = get_abi_tag()
     platform = get_platform()
-    return f'cache-{schema_version}-{impl}-{abi}-{platform}.sqlite'
+    manylinux1 = '-manylinux1' if is_manylinux1_compatible() else ''
+    return f'cache-{schema_version}-{impl}-{abi}-{platform}{manylinux1}.sqlite'
 
 
 def connect_to_cache():

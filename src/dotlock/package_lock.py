@@ -4,7 +4,7 @@ import json
 from dotlock.exceptions import LockEnvironmentMismatch
 from dotlock.resolve import Requirement, candidate_topo_sort
 from dotlock.package_json import PackageJSON
-from dotlock._vendored.pep425tags import get_impl_tag, get_abi_tag, get_platform
+from dotlock._vendored.pep425tags import get_impl_tag, get_abi_tag, get_platform, is_manylinux1_compatible
 
 
 def candidate_list(requirements: List[Requirement]) -> List[Dict[str, str]]:
@@ -25,6 +25,7 @@ def package_lock_data(package_json: PackageJSON):
         'python': get_impl_tag(),
         'abi': get_abi_tag(),
         'platform': get_platform(),
+        'manylinux1': is_manylinux1_compatible(),
         'default': candidate_list(package_json.default),
         'extras': {
             key: candidate_list(reqs)
@@ -49,6 +50,8 @@ def load_package_lock(file_path: str) -> dict:
         raise LockEnvironmentMismatch('abi', lock_data['abi'], get_abi_tag())
     if lock_data['platform'] != get_platform():
         raise LockEnvironmentMismatch('platform', lock_data['platform'], get_platform())
+    if lock_data['manylinux1'] != is_manylinux1_compatible():
+        raise LockEnvironmentMismatch('manylinux1', lock_data['manylinux1'], is_manylinux1_compatible())
 
     return lock_data
 
