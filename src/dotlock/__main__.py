@@ -4,6 +4,7 @@ import logging
 import sys
 
 from dotlock.activate import activate
+from dotlock.exceptions import LockEnvironmentMismatch
 from dotlock.graph import graph_resolution
 from dotlock.package_json import PackageJSON
 from dotlock.package_lock import write_package_lock, load_package_lock, merge_requirement_lists
@@ -37,6 +38,7 @@ install_parser.add_argument('--extras', nargs='+', default=[])
 
 def main():
     logging.basicConfig()
+    logger = logging.getLogger('dotlock')
 
     base_args = base_parser.parse_args(sys.argv[1:])
     command = base_args.command
@@ -68,7 +70,13 @@ def main():
     if command == 'install':
         install_args = install_parser.parse_args(args)
 
-        package_lock = load_package_lock('package.lock.json')
+        try:
+            package_lock = load_package_lock('package.lock.json')
+        except LockEnvironmentMismatch as e:
+            logger.error('package.lock.json was generated with %s %s, but you are using %s',
+                         e.env_key, e.locked_value, e.env_value)
+            exit(-1)
+
         default_reqs = package_lock['default']
         extras_reqs = [package_lock['extras'][extra] for extra in install_args.extras]
         requirements = merge_requirement_lists([default_reqs] + extras_reqs)

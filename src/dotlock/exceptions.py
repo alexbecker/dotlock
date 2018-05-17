@@ -16,3 +16,10 @@ class NoMatchingCandidateError(PackageResolutionError):
 class CircularDependencyError(PackageResolutionError):
     def __init__(self, dependency_chain):
         self.dependency_chain = dependency_chain
+
+
+class LockEnvironmentMismatch(PackageResolutionError):
+    def __init__(self, env_key, locked_value, env_value):
+        self.env_key = env_key
+        self.locked_value = locked_value
+        self.env_value = env_value
