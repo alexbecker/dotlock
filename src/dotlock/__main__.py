@@ -2,20 +2,33 @@ import argparse
 import asyncio
 import logging
 import sys
+from typing import NoReturn
 
-from dotlock.activate import activate
 from dotlock.exceptions import LockEnvironmentMismatch
 from dotlock.graph import graph_resolution
 from dotlock.package_json import PackageJSON
 from dotlock.package_lock import write_package_lock, load_package_lock, merge_requirement_lists
 from dotlock.init import init
 from dotlock.install import install
+from dotlock.run import run
 
 
 base_parser = argparse.ArgumentParser(description='A Python package management utility.')
 base_parser.add_argument('--debug', action='store_true', default=False)
-base_parser.add_argument('command', choices=['init', 'activate', 'graph', 'lock', 'install'])
+base_parser.add_argument('command', choices=['init', 'run', 'graph', 'lock', 'install'])
 base_parser.add_argument('args', nargs=argparse.REMAINDER, help='(varies by command)')
+
+init_parser = argparse.ArgumentParser(
+    prog='dotlock init',
+    description='Creates a virtualenv (./venv) and default package.json.',
+)
+
+run_parser = argparse.ArgumentParser(
+    prog='dotlock run',
+    description='Runs a command within the virtualenv.',
+)
+run_parser.add_argument('command', help='command to run within the virtualenv')
+run_parser.add_argument('args', nargs=argparse.REMAINDER, help='arguments to [command]')
 
 graph_parser = argparse.ArgumentParser(
     prog='dotlock graph',
@@ -36,7 +49,7 @@ install_parser = argparse.ArgumentParser(
 install_parser.add_argument('--extras', nargs='+', default=[])
 
 
-def main():
+def main() -> NoReturn:
     logging.basicConfig()
     logger = logging.getLogger('dotlock')
 
@@ -53,8 +66,9 @@ def main():
 
     if command == 'init':
         init()
-    if command == 'activate':
-        activate()
+    if command == 'run':
+        run_args = run_parser.parse_args(args)
+        run(run_args.command, run_args.args)
     if command == 'graph':
         graph_args = graph_parser.parse_args(args)
 
@@ -83,6 +97,8 @@ def main():
 
         future = install(requirements)
         loop.run_until_complete(future)
+
+    exit(0)
 
 
 if __name__ == '__main__':
