@@ -6,3 +6,4 @@ dist
 dotlock.egg-info/
 .cache/
 .tox/
+.mypy_cache
