@@ -52,8 +52,8 @@ Then on both development and deployed machines, run:
 
 .. code-block:: shell
 
-    dotlock install   # Installs exactly the distributions in package.lock.json.
-    dotlock activate  # Enters the virtualenv.
+    dotlock install  # Installs exactly the distributions in package.lock.json.
+    dotlock run [program] [args]  # Runs [program] in the virtualenv.
 
 For more information, run ``dotlock -h`` or ``dotlock [command] -h``.
 
