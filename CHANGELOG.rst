@@ -1,3 +1,11 @@
+0.3.0 (2018-05-18)
+------------------
+
+* Replace fatally flawed "activate" command with "run" command that works
+
+* Mypy incorporated into tox tests; outstanding issues fixed
+
+
 0.2.3 (2018-05-16)
 ------------------
 
