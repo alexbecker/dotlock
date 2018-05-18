@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Set
 import json
 
 from dotlock.exceptions import LockEnvironmentMismatch
@@ -20,7 +20,7 @@ def candidate_list(requirements: List[Requirement]) -> List[Dict[str, str]]:
     ]
 
 
-def package_lock_data(package_json: PackageJSON):
+def package_lock_data(package_json: PackageJSON) -> dict:
     return {
         'python': get_impl_tag(),
         'abi': get_abi_tag(),
@@ -34,7 +34,7 @@ def package_lock_data(package_json: PackageJSON):
     }
 
 
-def write_package_lock(package_json: PackageJSON):
+def write_package_lock(package_json: PackageJSON) -> None:
     data = package_lock_data(package_json)
     with open('package.lock.json', 'w') as fp:
         json.dump(data, fp, indent=4, sort_keys=True)
@@ -56,9 +56,9 @@ def load_package_lock(file_path: str) -> dict:
     return lock_data
 
 
-def merge_requirement_lists(requirement_lists: List[List[dict]]):
+def merge_requirement_lists(requirement_lists: List[List[dict]]) -> List[dict]:
     requirements = []
-    requirement_names = set()
+    requirement_names: Set[str] = set()
     for rl in requirement_lists:
         for r in rl:
             name = r['name']

@@ -1,5 +1,5 @@
 """Functions for making API requests to PyPI."""
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import logging
 
 from aiohttp import ClientSession
@@ -11,7 +11,9 @@ from dotlock.exceptions import NotFound
 logger = logging.getLogger(__name__)
 
 
-async def _get_metadata(sources: List[str], session: ClientSession, name: str, version: Optional[Version]) -> (str, dict):
+async def _get_metadata(
+        sources: List[str], session: ClientSession, name: str, version: Optional[Version]
+) -> Tuple[str, dict]:
     for source in sources:
         if version is None:
             url = f'{source}/{name}/json'
@@ -29,7 +31,9 @@ async def _get_metadata(sources: List[str], session: ClientSession, name: str, v
     raise NotFound(name, version)
 
 
-async def get_source_and_base_metadata(sources: List[str], session: ClientSession, name: str) -> (str, dict):
+async def get_source_and_base_metadata(
+        sources: List[str], session: ClientSession, name: str
+) -> Tuple[str, dict]:
     return await _get_metadata(sources, session, name, version=None)
 
 

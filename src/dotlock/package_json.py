@@ -13,17 +13,17 @@ class PackageJSON:
             sources: List[str],
             default: List[Requirement],
             extras: Dict[str, List[Requirement]],
-    ):
+    ) -> None:
         self.sources = sources
         self.default = default
         self.extras = extras
 
     @staticmethod
-    def load(file_path: str):
+    def load(file_path: str) -> 'PackageJSON':
         with open(file_path) as fp:
             contents = json.load(fp)
 
-        def parse_requirements(requirement_dicts: Dict[str, str]):
+        def parse_requirements(requirement_dicts: Dict[str, str]) -> List[Requirement]:
             return [
                 Requirement(
                     info=RequirementInfo(
@@ -45,7 +45,7 @@ class PackageJSON:
             },
         )
 
-    async def resolve(self, update: bool):
+    async def resolve(self, update: bool) -> None:
         # Resolve for all extras simultaneously to prevent conflicts.
         requirements = self.default
         for reqs in self.extras.values():

@@ -42,8 +42,8 @@ def get_wheel_file_requirements(filename: str) -> List[RequirementInfo]:
     requirement_lines = []
     with zipfile.ZipFile(filename) as wheel_zip:
         with wheel_zip.open(metadata_name) as fp:
-            for line in fp:
-                line = line.decode('utf-8')
+            for line_bytes in fp:
+                line = line_bytes.decode('utf-8')
                 req_prefix = 'Requires-Dist:'
                 if line.startswith(req_prefix):
                     line = line[len(req_prefix):].strip()
@@ -53,10 +53,10 @@ def get_wheel_file_requirements(filename: str) -> List[RequirementInfo]:
     parsed_requirements = parse_requirements(requirement_lines)
     for r in parsed_requirements:
         # pkg_resources vendors packaging so we have to change the type so comparisons work
-        specifier = SpecifierSet(str(r.specifier))
-        marker = Marker(str(r.marker)) if r.marker else None
+        specifier = SpecifierSet(str(r.specifier))  # type: ignore
+        marker = Marker(str(r.marker)) if r.marker else None  # type: ignore
         rv.append(RequirementInfo(
-            name=canonicalize_name(r.name),
+            name=canonicalize_name(r.name),  # type: ignore
             specifier=specifier,
             extras=tuple(r.extras),
             marker=marker,

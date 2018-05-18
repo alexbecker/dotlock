@@ -61,10 +61,13 @@ def get_cached_candidate_infos(
             sha256=row[5],
         ) for row in query.fetchall()
     ]
+
     if results:
         logger.debug('Cache HIT for candidate_infos %s', name)
         return results
+
     logger.debug('Cache MISS for candidate_infos %s', name)
+    return None
 
 
 def set_cached_candidate_infos(

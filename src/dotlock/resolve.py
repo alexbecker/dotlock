@@ -16,13 +16,13 @@ logger = logging.getLogger(__name__)
 
 
 class Requirement:
-    def __init__(self, info: RequirementInfo, parent: Optional['Requirement']):
+    def __init__(self, info: RequirementInfo, parent: Optional['Requirement']) -> None:
         self.info = info
         self.parent = parent
         # Requirements and Candidates form an alternating tree.
         # Each Requirement has a collection of Candidates, which in turn have Requirements.
         # These are recursively populated by resolve_requirement_list.
-        self.candidates: Dict[CandidateInfo: Candidate] = {}
+        self.candidates: Dict[CandidateInfo, Candidate] = {}
 
     def _ancestors(self, ancestors: List['Requirement']) -> List['Requirement']:
         if ancestors and self.info.name == ancestors[0].info.name:
@@ -64,7 +64,7 @@ class Requirement:
 
 
 class Candidate:
-    def __init__(self, info: CandidateInfo, requirement: Requirement, extras: Set[str]):
+    def __init__(self, info: CandidateInfo, requirement: Requirement, extras: Set[str]) -> None:
         self.info = info
         self.requirement = requirement
         # During resolution, we may discover other Requirements which force us to install
@@ -73,9 +73,9 @@ class Candidate:
         # The live flag lets us populate a Requirement with all Candidates, while only having one "in-use" candidate.
         # Which candidate is live for a given Requirement may change if we are forced to backtrack during resolution.
         self.live = False
-        self.requirements: Dict[RequirementInfo: Requirement] = {}
+        self.requirements: Dict[RequirementInfo, Requirement] = {}
 
-    async def set_requirements(self, connection: Connection, session: ClientSession):
+    async def set_requirements(self, connection: Connection, session: ClientSession) -> None:
         """
         Populates self.requirements. Does not populate candidates for these requirements.
 
@@ -89,8 +89,8 @@ class Candidate:
             # or are for extras we do not want for this candidate.
             if requirement_info.marker:
                 # Marker.evaluate requires exactly 1 'extra', so we iterate over self.extras
-                # or just use None if we do not want any extras.
-                environments = [{'extra': extra} for extra in self.extras] if self.extras else [{'extra': None}]
+                # or just use '' if we do not want any extras.
+                environments = [{'extra': extra} for extra in self.extras] if self.extras else [{'extra': ''}]
                 if not any(
                     requirement_info.marker.evaluate(environment) for environment in environments
                 ):
