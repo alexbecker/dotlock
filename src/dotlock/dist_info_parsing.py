@@ -7,6 +7,7 @@ import logging
 
 from aiohttp import ClientSession
 from packaging.requirements import Requirement as PackagingRequirement
+from packaging.specifiers import SpecifierSet
 from packaging.utils import canonicalize_name
 from packaging.version import Version, InvalidVersion
 
@@ -32,6 +33,15 @@ class RequirementInfo(namedtuple(
         '_RequirementInfo',
         ('name', 'specifier', 'extras', 'marker'),
     )):
+    @classmethod
+    def from_specifier_str(cls, name, specifier_str):
+        return RequirementInfo(
+            name=name,
+            specifier=SpecifierSet(specifier_str) if specifier_str != '*' else None,
+            extras=tuple(),
+            marker=None,
+        )
+
     def __str__(self):
         result = self.name
         if self.extras:

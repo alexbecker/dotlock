@@ -1,39 +1,57 @@
+from typing import Dict, List
+
 import pytest
-from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 from dotlock.caching import set_cached_candidate_infos, set_cached_requirement_infos
 from dotlock.dist_info_parsing import PackageType, RequirementInfo, CandidateInfo
 from dotlock.exceptions import CircularDependencyError
+from dotlock.package_json import parse_requirements
 from dotlock.resolve import Requirement, _resolve_requirement_list, candidate_topo_sort
+
+
+def make_index_cache(cache_connection, index_state: dict) -> Dict[CandidateInfo, List[RequirementInfo]]:
+    candidates_with_requirements = {}
+    for package_name, package_data in index_state.items():
+        for version_str, version_data in package_data.items():
+            for package_type, requirement_dict in version_data.items():
+                candidate = CandidateInfo(
+                    name=package_name,
+                    version=Version(version_str),
+                    package_type=package_type,
+                    source='https://pypi.org/pypi',
+                    url=f'https://pypi.org/{package_name}/{version_str}/{package_type.name}',
+                    sha256=str(len(candidates_with_requirements)),  # Just needs to be unique.
+                )
+                candidates_with_requirements[candidate] = [
+                    RequirementInfo.from_specifier_str(name, specifier_str)
+                    for name, specifier_str in requirement_dict.items()
+                ]
+
+    set_cached_candidate_infos(cache_connection, list(candidates_with_requirements))
+    for candidate, requirements in candidates_with_requirements.items():
+        set_cached_requirement_infos(cache_connection, candidate, requirements)
+
+    return candidates_with_requirements
 
 
 @pytest.mark.asyncio
 async def test_resolve_no_dependencies_multiple_candidates(cache_connection):
-    requirements = [
-        Requirement(
-            info=RequirementInfo(name='a', specifier=SpecifierSet('<2.0'), extras=tuple(), marker=None),
-            parent=None,
-        )
-    ]
-
-    # Create cached candidates for a.
-    cached_canidate_infos = [
-        CandidateInfo(name='a', version=Version('1.0'), package_type=PackageType.bdist_wheel,
-                      source='https://pypi.org/pypi', url='https://a.com/1.0b', sha256='1'),
-        CandidateInfo(name='a', version=Version('1.1'), package_type=PackageType.sdist,
-                      source='https://pypi.org/pypi', url='https://a.com/1.1s', sha256='2'),
-        # This is the candidate that should be selected!
-        CandidateInfo(name='a', version=Version('1.1'), package_type=PackageType.bdist_wheel,
-                      source='https://pypi.org/pypi', url='https://a.com/1.1b', sha256='3'),
-        CandidateInfo(name='a', version=Version('2.0'), package_type=PackageType.bdist_wheel,
-                      source='https://pypi.org/pypi', url='https://a.com/2.0b', sha256='4'),
-    ]
-    set_cached_candidate_infos(cache_connection, cached_canidate_infos)
-
-    # Create cached requirements for each candidate.
-    for candidate_info in cached_canidate_infos:
-        set_cached_requirement_infos(cache_connection, candidate_info, [])
+    requirements = parse_requirements({'a': '<2.0'})
+    candidates_with_requirements = make_index_cache(cache_connection, {
+        'a': {
+            '1.0': {
+                PackageType.bdist_wheel: {},
+            },
+            '1.1': {
+                PackageType.bdist_wheel: {},  # This one should be selected.
+                PackageType.sdist: {},
+            },
+            '2.0': {
+                PackageType.bdist_wheel: {},
+            },
+        }
+    })
 
     await _resolve_requirement_list(
         package_types=[PackageType.bdist_wheel, PackageType.sdist],
@@ -47,41 +65,33 @@ async def test_resolve_no_dependencies_multiple_candidates(cache_connection):
     candidates = candidate_topo_sort(requirements)
     candidate_infos = [c.info for c in candidates]
 
-    assert candidate_infos == [cached_canidate_infos[2]]
+    assert candidate_infos == list(candidates_with_requirements)[1:2]
 
 
 @pytest.mark.asyncio
 async def test_resolve_depth_2_dependencies(cache_connection):
-    requirements = [
-        Requirement(
-            info=RequirementInfo(name='a', specifier=None, extras=tuple(), marker=None),
-            parent=None,
-        )
-    ]
-
-    # Create cached candidates for each package.
-    cached_canidate_infos = [
-        CandidateInfo(name='a', version=Version('1.0'), package_type=PackageType.bdist_wheel,
-                      source='https://pypi.org/pypi', url='https://a.com/1.0b', sha256='a'),
-        CandidateInfo(name='b', version=Version('1.0'), package_type=PackageType.bdist_wheel,
-                      source='https://pypi.org/pypi', url='https://b.com/1.0b', sha256='b'),
-        CandidateInfo(name='c', version=Version('1.0'), package_type=PackageType.bdist_wheel,
-                      source='https://pypi.org/pypi', url='https://c.com/1.0b', sha256='c'),
-    ]
-    set_cached_candidate_infos(cache_connection, cached_canidate_infos)
-
-    # Create cached requirements for each candidate.
-    for i, c in enumerate(cached_canidate_infos):
-        if i < 2:
-            # Make a depend on b depend on c.
-            requirement_name = 'abc'[i + 1]
-            c_requirements = [
-                RequirementInfo(name=requirement_name, specifier=None, extras=tuple(), marker=None),
-            ]
-        else:
-            # Make c have no dependencies.
-            c_requirements = []
-        set_cached_requirement_infos(cache_connection, c, c_requirements)
+    requirements = parse_requirements({'a': '*'})
+    candidates_with_requirements = make_index_cache(cache_connection, {
+        'a': {
+            '1.0': {
+                PackageType.bdist_wheel: {
+                    'b': '*',
+                }
+            }
+        },
+        'b': {
+            '1.0': {
+                PackageType.bdist_wheel: {
+                    'c': '*',
+                }
+            }
+        },
+        'c': {
+            '1.0': {
+                PackageType.bdist_wheel: {}
+            }
+        },
+    })
 
     await _resolve_requirement_list(
         package_types=[PackageType.bdist_wheel, PackageType.sdist],
@@ -96,37 +106,35 @@ async def test_resolve_depth_2_dependencies(cache_connection):
     candidate_infos = [c.info for c in candidates]
 
     # The candidates in topo order should be the reverse of the dependency order.
-    assert candidate_infos == cached_canidate_infos[::-1]
+    assert candidate_infos == list(candidates_with_requirements)[::-1]
 
 
 @pytest.mark.asyncio
 async def test_circular_dependency(cache_connection):
-    requirements = [
-        Requirement(
-            info=RequirementInfo(name='a', specifier=None, extras=tuple(), marker=None),
-            parent=None,
-        )
-    ]
-
-    # Create cached candidates for each package.
-    cached_canidate_infos = [
-        CandidateInfo(name='a', version=Version('1.0'), package_type=PackageType.bdist_wheel,
-                      source='https://pypi.org/pypi', url='https://a.com/1.0b', sha256='a'),
-        CandidateInfo(name='b', version=Version('1.0'), package_type=PackageType.bdist_wheel,
-                      source='https://pypi.org/pypi', url='https://b.com/1.0b', sha256='b'),
-        CandidateInfo(name='c', version=Version('1.0'), package_type=PackageType.bdist_wheel,
-                      source='https://pypi.org/pypi', url='https://c.com/1.0b', sha256='c'),
-    ]
-    set_cached_candidate_infos(cache_connection, cached_canidate_infos)
-
-    # Create cached requirements for each candidate.
-    for i, c in enumerate(cached_canidate_infos):
-        # Make a depend on b depend on c depend on a (circular).
-        requirement_name = 'abc'[(i + 1) % 3]
-        c_requirements = [
-            RequirementInfo(name=requirement_name, specifier=None, extras=tuple(), marker=None),
-        ]
-        set_cached_requirement_infos(cache_connection, c, c_requirements)
+    requirements = parse_requirements({'a': '*'})
+    make_index_cache(cache_connection, {
+        'a': {
+            '1.0': {
+                PackageType.bdist_wheel: {
+                    'b': '*',
+                }
+            }
+        },
+        'b': {
+            '1.0': {
+                PackageType.bdist_wheel: {
+                    'c': '*',
+                }
+            }
+        },
+        'c': {
+            '1.0': {
+                PackageType.bdist_wheel: {
+                    'a': '*',
+                }
+            }
+        },
+    })
 
     with pytest.raises(CircularDependencyError):
         await _resolve_requirement_list(
