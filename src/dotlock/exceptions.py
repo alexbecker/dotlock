@@ -23,3 +23,13 @@ class LockEnvironmentMismatch(PackageResolutionError):
         self.env_key = env_key
         self.locked_value = locked_value
         self.env_value = env_value
+
+
+class PackageIndexError(PackageResolutionError):
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
+class UnsupportedHashFunctionError(PackageIndexError):
+    def __init__(self, hash_function):
+        self.hash_function = hash_function

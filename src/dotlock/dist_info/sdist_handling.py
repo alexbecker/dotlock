@@ -4,12 +4,11 @@ import os
 import sys
 import distutils.core
 from typing import List
-from tempfile import TemporaryDirectory
 
 from aiohttp import ClientSession
 from packaging.utils import canonicalize_name
 
-from dotlock.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType, parse_requires_dist
+from dotlock.dist_info.dist_info import RequirementInfo, CandidateInfo, PackageType, parse_requires_dist
 from dotlock.tempdir import temp_working_dir
 
 
@@ -20,6 +19,7 @@ def run_setup():
     """
     Like distutils.core.run_setup('setup.py', stop_after='config')
     except sets __name__ = '__main__' which some packages require.
+    See: https://bugs.python.org/issue18970
 
     Returns:
         A distutils.core.Distribution instance.

@@ -8,7 +8,7 @@ from packaging.specifiers import SpecifierSet
 from packaging.utils import canonicalize_name
 from pkg_resources import parse_requirements
 
-from dotlock.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType
+from dotlock.dist_info.dist_info import RequirementInfo, CandidateInfo, PackageType
 from dotlock.markers import Marker
 from dotlock.tempdir import temp_working_dir
 

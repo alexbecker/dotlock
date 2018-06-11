@@ -4,7 +4,7 @@ import os
 import pytest
 import aiohttp
 
-from dotlock.caching import setup_script
+from dotlock.dist_info.caching import setup_script
 
 
 @pytest.fixture(name='cache_connection')

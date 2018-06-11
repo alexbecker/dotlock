@@ -6,7 +6,7 @@ from typing import Iterable, List, Optional
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
-from dotlock.dist_info_parsing import RequirementInfo, CandidateInfo, PackageType
+from dotlock.dist_info.dist_info import RequirementInfo, CandidateInfo, PackageType
 from dotlock.markers import Marker
 from dotlock._vendored.appdirs import user_cache_dir
 from dotlock._vendored.pep425tags import get_impl_tag, get_abi_tag, get_platform, is_manylinux1_compatible

@@ -4,8 +4,8 @@ import shutil
 import pytest
 from packaging.specifiers import SpecifierSet
 
-from dotlock.dist_info_parsing import RequirementInfo
-from dotlock.sdist_handling import get_sdist_file_requirements
+from dotlock.dist_info.dist_info import RequirementInfo
+from dotlock.dist_info.sdist_handling import get_sdist_file_requirements
 from dotlock.tempdir import temp_working_dir
 
 

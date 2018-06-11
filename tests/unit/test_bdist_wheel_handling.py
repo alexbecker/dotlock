@@ -2,8 +2,8 @@ from pathlib import Path
 
 from packaging.specifiers import SpecifierSet
 
-from dotlock.dist_info_parsing import RequirementInfo
-from dotlock.bdist_wheel_handling import get_wheel_file_requirements
+from dotlock.dist_info.dist_info import RequirementInfo
+from dotlock.dist_info.wheel_handling import get_wheel_file_requirements
 from dotlock.markers import Marker
 
 

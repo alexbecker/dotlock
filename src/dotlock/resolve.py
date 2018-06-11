@@ -7,8 +7,8 @@ import asyncio
 from aiohttp import ClientSession, TCPConnector
 from packaging.specifiers import SpecifierSet
 
-from dotlock.caching import connect_to_cache
-from dotlock.dist_info_parsing import PackageType, RequirementInfo, CandidateInfo
+from dotlock.dist_info.caching import connect_to_cache
+from dotlock.dist_info.dist_info import PackageType, RequirementInfo, CandidateInfo
 from dotlock.exceptions import CircularDependencyError
 
 

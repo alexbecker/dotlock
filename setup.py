@@ -23,7 +23,7 @@ setup(
     package_dir={'': 'src'},
     package_data={
         'dotlock': [
-            'cache_schema.sql',
+            'dist_info/cache_schema.sql',
             'package.skeleton.json',
         ],
     },

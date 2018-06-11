@@ -3,11 +3,11 @@ from typing import Dict, List
 import pytest
 from packaging.version import Version
 
-from dotlock.caching import set_cached_candidate_infos, set_cached_requirement_infos
-from dotlock.dist_info_parsing import PackageType, RequirementInfo, CandidateInfo
+from dotlock.dist_info.caching import set_cached_candidate_infos, set_cached_requirement_infos
+from dotlock.dist_info.dist_info import PackageType, RequirementInfo, CandidateInfo
 from dotlock.exceptions import CircularDependencyError
 from dotlock.package_json import parse_requirements
-from dotlock.resolve import Requirement, _resolve_requirement_list, candidate_topo_sort
+from dotlock.resolve import _resolve_requirement_list, candidate_topo_sort
 
 
 def make_index_cache(cache_connection, index_state: dict) -> Dict[CandidateInfo, List[RequirementInfo]]:
