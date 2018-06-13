@@ -92,8 +92,6 @@ Roadmap and Limitations
 
 Planned features:
 
-* Handle non-PyPI `PEP 503 <https://www.python.org/dev/peps/pep-0503/>`_ compliant package indices: target ``0.4.0``
-
 * VCS dependencies (git, svn, hg): target ``0.4.0``
 
 * Concurrent package downloads in ``dotlock install``: target ``0.4.0``
