@@ -11,7 +11,8 @@ CREATE TABLE requirement_infos (
     id INTEGER PRIMARY KEY,
     candidate_sha256 VARCHAR(65) NOT NULL,
     name VARCHAR(50) NOT NULL,
-    specifier VARCHAR(50) NOT NULL,
+    vcs_url VARCHAR(300),
+    specifier VARCHAR(50),
     extras VARCHAR(50),
     marker VARCHAR(50),
     FOREIGN KEY (candidate_sha256) REFERENCES candidate_infos(sha256)

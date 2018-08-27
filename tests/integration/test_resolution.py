@@ -10,19 +10,18 @@ async def test_aiohttp(aiohttp_resolved_requirements):
     candidate_names = [candidate.info.name for candidate in candidates]
 
     assert candidate_names == [
-        'idna',
-        'idna-ssl',
-        'multidict',
-        'yarl',
-        'async-timeout',
-        'chardet',
         'attrs',
+        'chardet',
+        'multidict',
+        'async-timeout',
+        'idna',
+        'yarl',
         'aiohttp',
     ]
 
 
 @pytest.mark.asyncio
-async def test_certbot(loop):
+async def test_certbot():
     requirements = [
         resolve.Requirement(
             info=resolve.RequirementInfo(
@@ -30,6 +29,7 @@ async def test_certbot(loop):
                 specifier=SpecifierSet('==0.23.0'),
                 extras=tuple(),
                 marker=None,
+                vcs_url=None,
             ),
             parent=None,
         ),
@@ -70,16 +70,17 @@ async def test_certbot(loop):
         'configobj',
         'configargparse',
         'certifi',
-        'chardet',
         'urllib3',
+        'chardet',
         'requests',
+        'requests-toolbelt',
         'acme',
         'certbot',
     ]
 
 
 @pytest.mark.asyncio
-async def test_pyrfc3339(loop):
+async def test_pyrfc3339():
     """
     Test a package that has a bdist but where PyPI requires_dist is missing.
     """
@@ -90,6 +91,7 @@ async def test_pyrfc3339(loop):
                 specifier=SpecifierSet('==1.0'),
                 extras=tuple(),
                 marker=None,
+                vcs_url=None,
             ),
             parent=None,
         ),

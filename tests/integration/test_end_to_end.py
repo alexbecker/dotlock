@@ -7,20 +7,20 @@ from dotlock.__main__ import _main
 from dotlock.tempdir import temp_working_dir
 
 
-@pytest.mark.parametrize('source,package_name,package_version', [
-    ('https://pypi.org/pypi', 'requests', '2.18.4'),
-    ('https://pypi.org/simple', 'requests', '2.18.3'),
+@pytest.mark.parametrize('source,spec,version', [
+    ('https://pypi.org/pypi', '==2.18.4', '2.18.4'),
+    ('https://pypi.org/simple', '==2.18.3', '2.18.3'),
+    ('https://pypi.org/pypi', 'git+git://github.com/requests/requests@v2.19.1', '2.19.1')
 ])
-def test_single_package(source, package_name, package_version):
-    with temp_working_dir():
-        import logging; logging.getLogger('dotlock').setLevel(logging.DEBUG)
+def test_requests(source, spec, version):
+    with temp_working_dir('test'):
         assert _main('init') == 0
 
         with open('package.json') as fp:
             package_json = json.load(fp)
 
         package_json['sources'] = [source]
-        package_json['default'][package_name] = f'=={package_version}'
+        package_json['default'] = {'requests': spec}
         with open('package.json', 'w') as fp:
             json.dump(package_json, fp)
 
@@ -32,10 +32,10 @@ def test_single_package(source, package_name, package_version):
         run_process = subprocess.run(
             [
                 'dotlock', 'run', 'python', '-c',
-                f'import {package_name}; print({package_name}.__version__)',
+                f'import requests; print(requests.__version__)',
             ],
             stdout=subprocess.PIPE,
         )
 
         output = run_process.stdout.decode('utf-8').strip()
-        assert output == package_version
+        assert output == version

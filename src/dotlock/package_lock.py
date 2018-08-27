@@ -15,6 +15,7 @@ def candidate_list(requirements: List[Requirement]) -> List[Dict[str, str]]:
             'package_type': candidate.info.package_type.name,
             'source': candidate.info.source,
             'url': candidate.info.url,
+            'vcs_url': candidate.info.vcs_url,
             'sha256': candidate.info.sha256,
         } for candidate in candidate_topo_sort(requirements)
     ]

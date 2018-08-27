@@ -8,7 +8,7 @@ from dotlock.package_lock import package_lock_data
 
 
 @pytest.mark.asyncio
-async def test_lock(loop):
+async def test_lock():
     testfile_path = str(Path(__file__).parent / Path('package.json'))
     package_json = PackageJSON.load(testfile_path)
 

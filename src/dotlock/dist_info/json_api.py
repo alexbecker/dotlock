@@ -65,6 +65,7 @@ async def get_candidate_infos(
                 package_type=package_type,
                 source=source,
                 url=distribution['url'],
+                vcs_url=None,
                 sha256=sha256,
             ))
 

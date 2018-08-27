@@ -85,6 +85,7 @@ async def get_candidate_infos(
                 package_type=package_type,
                 source=source,
                 url=urldefrag(candidate_url.geturl()).url,  # Strip sha256= fragment.
+                vcs_url=None,
                 sha256=hash_value,
             ))
         else:
@@ -101,6 +102,7 @@ async def get_candidate_infos(
                 package_type=package_type,
                 source=source,
                 url=urldefrag(candidate_url.geturl()).url,  # Strip sha256= fragment.
+                vcs_url=None,
                 sha256=hash_value,
             ))
 

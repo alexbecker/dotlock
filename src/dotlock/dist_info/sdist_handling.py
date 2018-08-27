@@ -66,10 +66,11 @@ async def get_sdist_requirements(session: ClientSession, candidate_info: Candida
                 async for chunk in response.content.iter_any():
                     fp.write(chunk)
 
-        return await get_sdist_file_requirements(candidate_info.name, filename)
+        package_dir = await extract_file(filename)
+        return get_local_package_requirements(candidate_info.name, package_dir)
 
 
-async def get_sdist_file_requirements(candidate_name: str, filename: str) -> List[RequirementInfo]:
+async def extract_file(filename: str) -> str:
     # Extract the file.
     if filename.endswith('.tar.gz'):
         ext = '.tar.gz'
@@ -90,11 +91,14 @@ async def get_sdist_file_requirements(candidate_name: str, filename: str) -> Lis
         raise ValueError('Unrecognized archive format: %s', filename)
 
     await subprocess.wait()
-    extracted_dir = filename[:-len(ext)]
+    return filename[:-len(ext)]
 
+
+def get_local_package_requirements(candidate_name: str, package_dir: str) -> List[RequirementInfo]:
     # CD into the extracted directory.
     # Necessary since some setup.py files expect to run from this directory.
-    os.chdir(extracted_dir)
+    old_cwd = os.getcwd()
+    os.chdir(package_dir)
     # Some setup.py files also expect the current directory to be in the path.
     sys.path.append(os.getcwd())
 
@@ -103,9 +107,10 @@ async def get_sdist_file_requirements(candidate_name: str, filename: str) -> Lis
         distribution = run_setup()
     finally:
         sys.path.pop()
+        os.chdir(old_cwd)
 
     canonical_name = canonicalize_name(distribution.get_name())
-    assert canonical_name == candidate_name, canonical_name
+    assert canonical_name == candidate_name, f'{canonical_name} != {candidate_name}'
 
     if distribution.setup_requires:
         logger.warning('Package %s uses setup_requires; we cannot guarantee integrity.',

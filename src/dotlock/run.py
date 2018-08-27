@@ -9,5 +9,5 @@ def run(path, args) -> NoReturn:
     with open(venv_script) as fp:
         exec(fp.read(), {'__file__': venv_script})
 
-    # exec* functions expect args[0] to be contain the name of the program
+    # exec* functions expect args[0] to contain the name of the program
     os.execlp(path, path, *args)

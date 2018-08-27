@@ -20,7 +20,7 @@ with setup_script_path.open() as fp:
 
 
 def cache_filename():
-    schema_version = '0.1'
+    schema_version = '0.2'
     impl = get_impl_tag()
     abi = get_abi_tag()
     platform = get_platform()
@@ -58,6 +58,7 @@ def get_cached_candidate_infos(
             package_type=PackageType[row[2]],
             source=row[3],
             url=row[4],
+            vcs_url=None,
             sha256=row[5],
         ) for row in query.fetchall()
     ]
@@ -99,24 +100,28 @@ def get_cached_requirement_infos(
         'SELECT requirements_cached FROM candidate_infos WHERE sha256=?',
         (candidate_info.sha256,)
     )
-    requirements_cached = query.fetchone()[0]
+    result = query.fetchone()
+    if result is None:  # No such candidate is cached.
+        return None
+    requirements_cached = result[0]
     if not requirements_cached:
         logger.debug('Cache MISS for requirement_infos %s', candidate_info)
         return None
 
     logger.debug('Cache HIT for requirement_infos %s', candidate_info)
     query = connection.execute(
-        'SELECT name, specifier, extras, marker FROM requirement_infos '
+        'SELECT name, vcs_url, specifier, extras, marker FROM requirement_infos '
         'WHERE candidate_sha256=?',
         (candidate_info.sha256,)
     )
     return [
         RequirementInfo(
-            name=row[0],
-            specifier=None if row[1] == '*' else SpecifierSet(row[1]),
-            extras=tuple(row[2].split(',')) if row[2] else tuple(),
-            marker=row[3] and Marker(row[3]),
-        ) for row in query.fetchall()
+            name=name,
+            vcs_url=vcs_url,
+            specifier=None if (vcs_url or specifier == '*') else SpecifierSet(specifier),
+            extras=tuple(extras.split(',')) if extras else tuple(),
+            marker=marker and Marker(marker),
+        ) for (name, vcs_url, specifier, extras, marker) in query.fetchall()
     ]
 
 
@@ -127,11 +132,12 @@ def set_cached_requirement_infos(
 ):
     for r in requirement_infos:
         connection.execute(
-            'INSERT INTO requirement_infos (candidate_sha256, name, specifier, extras, marker) '
-            'VALUES (?, ?, ?, ?, ?)',
+            'INSERT INTO requirement_infos (candidate_sha256, name, vcs_url, specifier, extras, marker) '
+            'VALUES (?, ?, ?, ?, ?, ?)',
             (
                 candidate_info.sha256,
                 r.name,
+                r.vcs_url,
                 str(r.specifier) if r.specifier else '*',
                 ','.join(r.extras) if r.extras else None,
                 r.marker and str(r.marker),

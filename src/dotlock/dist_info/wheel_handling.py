@@ -57,6 +57,7 @@ def get_wheel_file_requirements(filename: str) -> List[RequirementInfo]:
         marker = Marker(str(r.marker)) if r.marker else None  # type: ignore
         rv.append(RequirementInfo(
             name=canonicalize_name(r.name),  # type: ignore
+            vcs_url=None,  # TODO: can wheels depend on VCS urls?
             specifier=specifier,
             extras=tuple(r.extras),
             marker=marker,

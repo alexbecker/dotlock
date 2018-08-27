@@ -1,16 +1,13 @@
 from typing import Dict, List
 import json
 
-from packaging.specifiers import SpecifierSet
-from packaging.utils import canonicalize_name
-
 from dotlock.resolve import PackageType, RequirementInfo, Requirement, resolve_requirements_list
 
 
 def parse_requirements(requirement_dicts: Dict[str, str]) -> List[Requirement]:
     return [
         Requirement(
-            info=RequirementInfo.from_specifier_str(name, specifier),
+            info=RequirementInfo.from_specifier_or_vcs(name, specifier),
             parent=None,
         ) for name, specifier in requirement_dicts.items()
     ]

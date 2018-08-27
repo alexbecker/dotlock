@@ -33,3 +33,7 @@ class PackageIndexError(PackageResolutionError):
 class UnsupportedHashFunctionError(PackageIndexError):
     def __init__(self, hash_function):
         self.hash_function = hash_function
+
+
+class VCSException(PackageResolutionError):
+    pass
