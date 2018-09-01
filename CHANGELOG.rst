@@ -1,3 +1,10 @@
+0.4.0 (2018-09-01)
+------------------
+
+* Support PEP 503 "Simple" APIs, not just the non-standard PyPI JSON API
+
+* Support `git://` dependencies
+
 0.3.0 (2018-05-18)
 ------------------
 
