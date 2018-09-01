@@ -37,3 +37,7 @@ class UnsupportedHashFunctionError(PackageIndexError):
 
 class VCSException(PackageResolutionError):
     pass
+
+
+class SystemException(Exception):
+    pass
