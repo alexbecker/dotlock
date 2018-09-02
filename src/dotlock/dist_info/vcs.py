@@ -10,12 +10,14 @@ from dotlock.tempdir import temp_working_dir
 def clone_command(vcs_url: str) -> List[str]:
     vcs_type, url = vcs_url.split('+')
     if '@' in url:
-        url, tag = url.split('@')
+        url, revision = url.split('@')
         return {
-            'git': ['git', 'clone', '--branch', tag, url]
+            'git': ['git', 'clone', '--branch', revision, url],
+            'hg': ['hg', 'clone', '-r', revision, url],
         }[vcs_type]
     return {
-        'git': ['git', 'clone', url]
+        'git': ['git', 'clone', url],
+        'hg': ['hg', 'clone', url],
     }[vcs_type]
 
 
