@@ -1,6 +1,8 @@
 dotlock
 =======
 
+[![Build Status](https://travis-ci.org/alexbecker/dotlock.svg?branch=master)](https://travis-ci.org/alexbecker/dotlock)
+
 Bringing sanity to Python dependency management.
 
 Motivation
@@ -91,8 +93,6 @@ Roadmap and Limitations
 -----------------------
 
 Planned features:
-
-* CI testing: target current release (``0.4.0``)
 
 * Subversion and Mercurial support: target ``0.4.1``
 
