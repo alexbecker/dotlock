@@ -112,10 +112,17 @@ def get_local_package_requirements(candidate_name: str, package_dir: str) -> Lis
     canonical_name = canonicalize_name(distribution.get_name())
     assert canonical_name == candidate_name, f'{canonical_name} != {candidate_name}'
 
-    if distribution.setup_requires:
+    try:
+        setup_requires = distribution.setup_requires
+        install_requires = distribution.install_requires
+    except AttributeError:
+        setup_requires = []
+        install_requires = distribution.get_requires()
+        logger.debug('Package %s uses outdated "requires" setup kwarg.')
+
+    if setup_requires:
         logger.warning('Package %s uses setup_requires; we cannot guarantee integrity.',
                        distribution.get_fullname())
 
-    requires = distribution.install_requires
-    logger.debug('%s sdist requires: %r', candidate_name, requires)
-    return parse_requires_dist(requires)
+    logger.debug('%s sdist requires: %r', candidate_name, install_requires)
+    return parse_requires_dist(install_requires)
