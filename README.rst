@@ -1,7 +1,8 @@
 dotlock
 =======
 
-[![Build Status](https://travis-ci.org/alexbecker/dotlock.svg?branch=master)](https://travis-ci.org/alexbecker/dotlock)
+.. image:: https://travis-ci.org/alexbecker/dotlock.svg?branch=master
+    :target: https://travis-ci.org/alexbecker/dotlock
 
 Bringing sanity to Python dependency management.
 
