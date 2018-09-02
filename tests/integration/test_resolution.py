@@ -1,3 +1,5 @@
+import sys
+
 from packaging.specifiers import SpecifierSet
 import pytest
 
@@ -7,9 +9,9 @@ from dotlock import resolve
 @pytest.mark.asyncio
 async def test_aiohttp(aiohttp_resolved_requirements):
     candidates = resolve.candidate_topo_sort(aiohttp_resolved_requirements)
-    candidate_names = [candidate.info.name for candidate in candidates]
+    candidate_names = {candidate.info.name for candidate in candidates}
 
-    assert candidate_names == [
+    expected_candidate_names = {
         'attrs',
         'chardet',
         'multidict',
@@ -17,7 +19,12 @@ async def test_aiohttp(aiohttp_resolved_requirements):
         'idna',
         'yarl',
         'aiohttp',
-    ]
+    }
+    if sys.version_info < (3, 7):
+        # idna-ssl is a dependency of aiohttp prior to python 3.7
+        expected_candidate_names.add('idna-ssl')
+
+    assert candidate_names == expected_candidate_names
 
 
 @pytest.mark.asyncio

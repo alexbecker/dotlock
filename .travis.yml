@@ -1,0 +1,12 @@
+language: python
+matrix:
+    include:
+        - python: 3.6
+        # Travis does not ship with 3.7 so have to install it.
+        - python: 3.7
+          dist: xenial
+          sudo: true
+install:
+    - pip install virtualenv  # see https://github.com/tox-dev/tox/issues/928
+    - pip install tox-travis
+script: tox

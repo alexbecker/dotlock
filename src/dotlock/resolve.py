@@ -1,6 +1,6 @@
 """Code for resolving requirements into concrete versions."""
 from sqlite3 import Connection
-from typing import List, Optional, Iterable, Set, Dict
+from typing import List, Optional, Iterable, Set, Dict, Tuple
 import logging
 import asyncio
 
@@ -246,7 +246,7 @@ def _candidate_topo_sort(requirements: Iterable[Requirement], seen: Set[str]) ->
                 yield candidate
 
 
-def candidate_topo_sort(requirements: List[Requirement]) -> List[Candidate]:
+def candidate_topo_sort(requirements: Iterable[Requirement]) -> Tuple[Candidate, ...]:
     """
     Args:
         requirements: A fully resolved list of requirements.
@@ -254,4 +254,4 @@ def candidate_topo_sort(requirements: List[Requirement]) -> List[Candidate]:
     Returns: A list of Candidates satisfying all Requirements (recursively), sorted
              such that if Candidate A depends on Candidate B, B will precede A.
     """
-    return list(_candidate_topo_sort(requirements, set()))
+    return tuple(_candidate_topo_sort(requirements, set()))

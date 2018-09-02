@@ -1,27 +1,27 @@
-from typing import Dict, List
+from typing import Dict, Iterable, Tuple, List
 import json
 
 from dotlock.resolve import PackageType, RequirementInfo, Requirement, resolve_requirements_list
 
 
-def parse_requirements(requirement_dicts: Dict[str, str]) -> List[Requirement]:
-    return [
+def parse_requirements(requirement_dicts: Dict[str, str]) -> Tuple[Requirement, ...]:
+    return tuple(
         Requirement(
             info=RequirementInfo.from_specifier_or_vcs(name, specifier),
             parent=None,
         ) for name, specifier in requirement_dicts.items()
-    ]
+    )
 
 
 class PackageJSON:
     def __init__(
             self,
             sources: List[str],
-            default: List[Requirement],
-            extras: Dict[str, List[Requirement]],
+            default: Iterable[Requirement],
+            extras: Dict[str, Tuple[Requirement, ...]],
     ) -> None:
         self.sources = sources
-        self.default = default
+        self.default = tuple(default)
         self.extras = extras
 
     @staticmethod
@@ -40,7 +40,7 @@ class PackageJSON:
 
     async def resolve(self, update: bool) -> None:
         # Resolve for all extras simultaneously to prevent conflicts.
-        requirements = self.default
+        requirements = list(self.default)
         for reqs in self.extras.values():
             requirements.extend(reqs)
 
