@@ -1,4 +1,4 @@
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 import json
 
 from dotlock.exceptions import LockEnvironmentMismatch
@@ -7,8 +7,8 @@ from dotlock.package_json import PackageJSON
 from dotlock._vendored.pep425tags import get_impl_tag, get_abi_tag, get_platform, is_manylinux1_compatible
 
 
-def candidate_list(requirements: List[Requirement]) -> List[Dict[str, str]]:
-    return [
+def candidate_list(requirements: Tuple[Requirement, ...]) -> Tuple[Dict[str, str], ...]:
+    return tuple(
         {
             'name': candidate.info.name,
             'version': str(candidate.info.version),
@@ -18,7 +18,7 @@ def candidate_list(requirements: List[Requirement]) -> List[Dict[str, str]]:
             'vcs_url': candidate.info.vcs_url,
             'sha256': candidate.info.sha256,
         } for candidate in candidate_topo_sort(requirements)
-    ]
+    )
 
 
 def package_lock_data(package_json: PackageJSON) -> dict:

@@ -16,8 +16,29 @@ async def test_lock():
 
     lock_data = package_lock_data(package_json)
 
-    golden_path = str(Path(__file__).parent / Path('package.lock.json'))
-    with open(golden_path, 'r') as fp:
-        golden_data = json.load(fp)
+    # Check that the various build env attributes are present
+    assert lock_data['python']
+    assert lock_data['abi']
+    assert lock_data['platform']
+    assert lock_data['manylinux1'] is not None
 
-    assert lock_data == golden_data
+    default_packages = {package['name'] for package in lock_data['default']}
+    test_packages = {package['name'] for package in lock_data['extras']['tests']}
+
+    assert default_packages == {
+        'chardet',
+        'async-timeout',
+        'multidict',
+        'idna',
+        'attrs',
+        'yarl',
+        'aiohttp',
+    }
+    assert test_packages == default_packages | {
+        'pytest',
+        'pytest-aiohttp',
+        'pluggy',
+        'py',
+        'setuptools',
+        'six',
+    }
