@@ -1,5 +1,5 @@
 from pathlib import Path
-import json
+import sys
 
 import pytest
 
@@ -25,7 +25,7 @@ async def test_lock():
     default_packages = {package['name'] for package in lock_data['default']}
     test_packages = {package['name'] for package in lock_data['extras']['tests']}
 
-    assert default_packages == {
+    expected_default_packages = {
         'chardet',
         'async-timeout',
         'multidict',
@@ -34,6 +34,10 @@ async def test_lock():
         'yarl',
         'aiohttp',
     }
+    if sys.version_info < (3, 7):
+        # idna-ssl is a dependency of aiohttp prior to python 3.7
+        expected_default_packages.add('idna-ssl')
+
     assert test_packages == default_packages | {
         'pytest',
         'pytest-aiohttp',
