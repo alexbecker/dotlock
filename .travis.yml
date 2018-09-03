@@ -6,7 +6,8 @@ matrix:
         - python: 3.7
           dist: xenial
           sudo: true
-install:
-    - pip install virtualenv  # see https://github.com/tox-dev/tox/issues/928
+before_install:
+    - sudo apt-get update
+    - sudo apt-get install -y mercurial subversion
     - pip install tox-travis
 script: tox
