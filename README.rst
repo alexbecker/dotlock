@@ -95,8 +95,6 @@ Roadmap and Limitations
 
 Planned features:
 
-* Subversion and Mercurial support: target ``0.4.1``
-
 * Concurrent package downloads in ``dotlock install``: target ``0.4.2``
 
 * Local dependencies: target ``0.5.0``

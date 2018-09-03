@@ -1,3 +1,14 @@
+0.4.1 (2018-09-03)
+------------------
+
+* Support `svn://` and `hg://` dependencies
+
+* Fixes a bug in handling old sdists which use `requires` instead of `install_requires`
+
+* Fixes a bug where extras dependencies were included in the `default` section of `package.lock.json`
+
+* Explain an unfixable error encountered running `dotlock init` from within a virtualenv while using a copied system `python` installation
+
 0.4.0 (2018-09-01)
 ------------------
 
