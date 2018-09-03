@@ -95,6 +95,7 @@ async def extract_file(filename: str) -> str:
 
 
 def get_local_package_requirements(candidate_name: str, package_dir: str) -> List[RequirementInfo]:
+    logger.debug('Getting local package requirements for %s from directory %s', candidate_name, package_dir)
     # CD into the extracted directory.
     # Necessary since some setup.py files expect to run from this directory.
     old_cwd = os.getcwd()

@@ -7,7 +7,7 @@ from typing import List
 
 import distlib.index
 
-from dotlock.dist_info.vcs import clone_command
+from dotlock.dist_info.vcs import clone
 from dotlock.tempdir import temp_working_dir
 
 logger = logging.getLogger(__name__)
@@ -18,10 +18,9 @@ async def download(requirement: dict):
     vcs_url = requirement['vcs_url']
     if vcs_url:
         logger.info('Cloning %s from %s', requirement['name'], vcs_url)
-        subprocess = await asyncio.create_subprocess_exec(
-            *clone_command(requirement['vcs_url'])
-        )
-        await subprocess.wait()
+        clone_dir_name = await clone(requirement['vcs_url'])
+        # Rename the cloned directory so it is unique and easy to install from.
+        os.rename(clone_dir_name, requirement['name'])
     else:
         logger.info('Downloading %s from %s', requirement['name'], url)
         index = distlib.index.PackageIndex(requirement['source'])

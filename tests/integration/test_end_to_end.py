@@ -11,6 +11,7 @@ from dotlock.tempdir import temp_working_dir
     ('https://pypi.org/pypi', 'requests', '==2.18.4', '2.18.4'),
     ('https://pypi.org/simple', 'requests','==2.18.3', '2.18.3'),
     ('https://pypi.org/pypi', 'requests', 'git+git://github.com/requests/requests@v2.19.1', '2.19.1'),
+    ('https://pypi.org/pypi', 'requests', 'svn+https://github.com/requests/requests/trunk@6920', '2.19.0'),
     ('https://pypi.org/pypi', 'distlib', 'hg+https://hg.python.org/distlib@0.1.7', '0.1.7'),
 ])
 def test_package(source, name, spec, version):
