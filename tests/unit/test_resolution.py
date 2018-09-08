@@ -22,7 +22,8 @@ def make_index_cache(cache_connection, index_state: dict) -> Dict[CandidateInfo,
                     source='https://pypi.org/pypi',
                     url=f'https://pypi.org/{package_name}/{version_str}/{package_type.name}',
                     vcs_url=None,
-                    sha256=str(len(candidates_with_requirements)),  # Just needs to be unique.
+                    hash_val=str(len(candidates_with_requirements)),  # Just needs to be unique.
+                    hash_alg='fake',
                 )
                 candidates_with_requirements[candidate] = [
                     RequirementInfo.from_specifier_or_vcs(name, specifier_str)

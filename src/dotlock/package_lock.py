@@ -16,7 +16,8 @@ def candidate_list(requirements: Tuple[Requirement, ...]) -> Tuple[Dict[str, str
             'source': candidate.info.source,
             'url': candidate.info.url,
             'vcs_url': candidate.info.vcs_url,
-            'sha256': candidate.info.sha256,
+            'hash_alg': candidate.info.hash_alg,
+            'hash_val': candidate.info.hash_val,
         } for candidate in candidate_topo_sort(requirements)
     )
 

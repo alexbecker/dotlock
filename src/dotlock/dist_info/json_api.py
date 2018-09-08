@@ -4,7 +4,8 @@ import logging
 from aiohttp import ClientSession
 from packaging.version import Version, InvalidVersion
 
-from dotlock.dist_info.dist_info import CandidateInfo, PackageType
+from dotlock.exceptions import UnsupportedHashFunctionError
+from dotlock.dist_info.dist_info import CandidateInfo, PackageType, hash_algorithms
 from dotlock.dist_info.wheel_filename_parsing import is_supported
 
 
@@ -58,7 +59,13 @@ async def get_candidate_infos(
                 logger.debug('Skipping package type %s for %s', package_type.name, name)
                 continue
 
-            sha256 = distribution['digests']['sha256']
+            for hash_alg in hash_algorithms:
+                hash_val = distribution['digests'].get(hash_alg)
+                if hash_val:
+                    break
+            else:
+                raise UnsupportedHashFunctionError(hash_alg)
+
             candidate_infos.append(CandidateInfo(
                 name=name,
                 version=version,
@@ -66,7 +73,8 @@ async def get_candidate_infos(
                 source=source,
                 url=distribution['url'],
                 vcs_url=None,
-                sha256=sha256,
+                hash_alg=hash_alg,
+                hash_val=hash_val,
             ))
 
     return candidate_infos
