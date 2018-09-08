@@ -26,6 +26,13 @@ class PackageType(IntEnum):
     bdist_wheel = auto()
 
 
+hash_algorithms = [
+    'sha256',
+    'sha1',
+    'md5',
+]
+
+
 class RequirementInfo(namedtuple(
         '_RequirementInfo',
         ('name', 'vcs_url', 'specifier', 'extras', 'marker'),
@@ -81,7 +88,8 @@ class RequirementInfo(namedtuple(
                     source=None,
                     url=None,
                     vcs_url=self.vcs_url,
-                    sha256=None,  # FIXME
+                    hash_alg=None,  # FIXME
+                    hash_val=None,  # FIXME
                 )
             ]
         else:
@@ -107,7 +115,7 @@ class RequirementInfo(namedtuple(
 
 class CandidateInfo(namedtuple(
         '_CandidateInfo',
-        ('name', 'version', 'package_type', 'source', 'url', 'vcs_url', 'sha256')
+        ('name', 'version', 'package_type', 'source', 'url', 'vcs_url', 'hash_alg', 'hash_val')
     )):
     async def get_requirement_infos(self, connection: Connection, session: ClientSession):
         from dotlock.dist_info.wheel_handling import get_bdist_wheel_requirements

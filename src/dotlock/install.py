@@ -1,9 +1,9 @@
 import asyncio
 import asyncio.subprocess
+import hashlib
 import os
-import os.path
 import logging
-from hashlib import sha256
+import os.path
 from typing import List
 
 from aiohttp import ClientSession
@@ -30,9 +30,12 @@ async def download(session: ClientSession, candidate: dict):
             response.raise_for_status()
             # TODO: download in chunks to reduce memory usage
             contents = await response.read()
-        digest = sha256(contents).hexdigest()
-        if digest != candidate['sha256']:
-            raise HashMismatchError(candidate['name'], candidate['version'], digest, candidate['sha256'])
+
+        hasher = hashlib.new(candidate['hash_alg'])
+        hasher.update(contents)
+        digest = hasher.hexdigest()
+        if digest != candidate['hash_val']:
+            raise HashMismatchError(candidate['name'], candidate['version'], digest, candidate['hash_val'])
 
         package_filename = candidate['url'].split('/')[-1]
         with open(package_filename, 'wb') as fp:

@@ -1,5 +1,6 @@
 CREATE TABLE candidate_infos (
-    sha256 VARCHAR(65) PRIMARY KEY ON CONFLICT IGNORE,
+    hash_val VARCHAR(65) PRIMARY KEY ON CONFLICT IGNORE,
+    hash_alg VARCHAR(20) NOT NULL,
     name VARCHAR(50) NOT NULL,
     version VARCHAR(20) NOT NULL,
     package_type VARCHAR(15) NOT NULL,
@@ -9,11 +10,11 @@ CREATE TABLE candidate_infos (
 );
 CREATE TABLE requirement_infos (
     id INTEGER PRIMARY KEY,
-    candidate_sha256 VARCHAR(65) NOT NULL,
+    candidate_hash VARCHAR(65) NOT NULL,
     name VARCHAR(50) NOT NULL,
     vcs_url VARCHAR(300),
     specifier VARCHAR(50),
     extras VARCHAR(50),
     marker VARCHAR(50),
-    FOREIGN KEY (candidate_sha256) REFERENCES candidate_infos(sha256)
+    FOREIGN KEY (candidate_hash) REFERENCES candidate_infos(hash_val)
 );

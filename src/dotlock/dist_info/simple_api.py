@@ -13,7 +13,7 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
 from dotlock.exceptions import UnsupportedHashFunctionError
-from dotlock.dist_info.dist_info import CandidateInfo, PackageType
+from dotlock.dist_info.dist_info import CandidateInfo, PackageType, hash_algorithms
 from dotlock.dist_info.wheel_filename_parsing import is_supported, get_wheel_version
 
 
@@ -68,9 +68,9 @@ async def get_candidate_infos(
     for candidate_url in parser.urls:
         if not candidate_url.fragment:
             raise UnsupportedHashFunctionError(hash_function=None)
-        hash_function, hash_value = candidate_url.fragment.split('=')
-        if hash_function != 'sha256':
-            raise UnsupportedHashFunctionError(hash_function)
+        hash_alg, hash_val = candidate_url.fragment.split('=')
+        if hash_alg not in hash_algorithms:
+            raise UnsupportedHashFunctionError(hash_alg)
 
         filename = candidate_url.path.split('/')[-1]
         if filename.endswith('.whl'):
@@ -84,9 +84,10 @@ async def get_candidate_infos(
                 version=get_wheel_version(filename),
                 package_type=package_type,
                 source=source,
-                url=urldefrag(candidate_url.geturl()).url,  # Strip sha256= fragment.
+                url=urldefrag(candidate_url.geturl()).url,  # Strip [hash_alg]= fragment.
                 vcs_url=None,
-                sha256=hash_value,
+                hash_alg=hash_alg,
+                hash_val=hash_val,
             ))
         else:
             package_type = PackageType.sdist
@@ -101,9 +102,10 @@ async def get_candidate_infos(
                 version=Version(parsed_filename.group('ver')),
                 package_type=package_type,
                 source=source,
-                url=urldefrag(candidate_url.geturl()).url,  # Strip sha256= fragment.
+                url=urldefrag(candidate_url.geturl()).url,  # Strip [hash_alg]= fragment.
                 vcs_url=None,
-                sha256=hash_value,
+                hash_alg=hash_alg,
+                hash_val=hash_val,
             ))
 
     return candidate_infos

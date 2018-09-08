@@ -20,7 +20,7 @@ with setup_script_path.open() as fp:
 
 
 def cache_filename():
-    schema_version = '0.2'
+    schema_version = '0.3'
     impl = get_impl_tag()
     abi = get_abi_tag()
     platform = get_platform()
@@ -48,7 +48,7 @@ def get_cached_candidate_infos(
         name: str,
 ) -> Optional[List[CandidateInfo]]:
     query = connection.execute(
-        'SELECT name, version, package_type, source, url, sha256 FROM candidate_infos WHERE name=?',
+        'SELECT name, version, package_type, source, url, hash_alg, hash_val FROM candidate_infos WHERE name=?',
         (name,)
     )
     results = [
@@ -59,7 +59,8 @@ def get_cached_candidate_infos(
             source=row[3],
             url=row[4],
             vcs_url=None,
-            sha256=row[5],
+            hash_alg=row[5],
+            hash_val=row[6],
         ) for row in query.fetchall()
     ]
 
@@ -77,15 +78,16 @@ def set_cached_candidate_infos(
 ):
     for c in candidate_infos:
         connection.execute(
-            'INSERT INTO candidate_infos (name, version, package_type, source, url, sha256, requirements_cached) '
-            'VALUES (?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO candidate_infos (name, version, package_type, source, url, hash_alg, hash_val, requirements_cached) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             (
                 c.name,
                 str(c.version),
                 c.package_type.name,
                 c.source,
                 c.url,
-                c.sha256,
+                c.hash_alg,
+                c.hash_val,
                 False,
             )
         )
@@ -97,8 +99,8 @@ def get_cached_requirement_infos(
         candidate_info: CandidateInfo,
 ) -> Optional[List[RequirementInfo]]:
     query = connection.execute(
-        'SELECT requirements_cached FROM candidate_infos WHERE sha256=?',
-        (candidate_info.sha256,)
+        'SELECT requirements_cached FROM candidate_infos WHERE hash_val=?',
+        (candidate_info.hash_val,)
     )
     result = query.fetchone()
     if result is None:  # No such candidate is cached.
@@ -111,8 +113,8 @@ def get_cached_requirement_infos(
     logger.debug('Cache HIT for requirement_infos %s', candidate_info)
     query = connection.execute(
         'SELECT name, vcs_url, specifier, extras, marker FROM requirement_infos '
-        'WHERE candidate_sha256=?',
-        (candidate_info.sha256,)
+        'WHERE candidate_hash=?',
+        (candidate_info.hash_val,)
     )
     return [
         RequirementInfo(
@@ -132,10 +134,10 @@ def set_cached_requirement_infos(
 ):
     for r in requirement_infos:
         connection.execute(
-            'INSERT INTO requirement_infos (candidate_sha256, name, vcs_url, specifier, extras, marker) '
+            'INSERT INTO requirement_infos (candidate_hash, name, vcs_url, specifier, extras, marker) '
             'VALUES (?, ?, ?, ?, ?, ?)',
             (
-                candidate_info.sha256,
+                candidate_info.hash_val,
                 r.name,
                 r.vcs_url,
                 str(r.specifier) if r.specifier else '*',
@@ -144,7 +146,7 @@ def set_cached_requirement_infos(
             )
         )
     connection.execute(
-        'UPDATE candidate_infos SET requirements_cached=1 WHERE sha256=?',
-        (candidate_info.sha256,)
+        'UPDATE candidate_infos SET requirements_cached=1 WHERE hash_val=?',
+        (candidate_info.hash_val,)
     )
     connection.commit()
