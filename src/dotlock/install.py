@@ -3,17 +3,19 @@ import asyncio.subprocess
 import os
 import os.path
 import logging
+from hashlib import sha256
 from typing import List
 
-import distlib.index
+from aiohttp import ClientSession
 
 from dotlock.dist_info.vcs import clone
+from dotlock.exceptions import HashMismatchError
 from dotlock.tempdir import temp_working_dir
 
 logger = logging.getLogger(__name__)
 
 
-async def download(requirement: dict):
+async def download(session: ClientSession, requirement: dict):
     url = requirement['url']
     vcs_url = requirement['vcs_url']
     if vcs_url:
@@ -23,20 +25,25 @@ async def download(requirement: dict):
         os.rename(clone_dir_name, requirement['name'])
     else:
         logger.info('Downloading %s from %s', requirement['name'], url)
-        index = distlib.index.PackageIndex(requirement['source'])
+
+        async with session.get(requirement['url']) as response:
+            response.raise_for_status()
+            # TODO: download in chunks to reduce memory usage
+            contents = await response.read()
+        digest = sha256(contents).hexdigest()
+        if digest != requirement['sha256']:
+            raise HashMismatchError(requirement['name'], requirement['version'], digest, requirement['sha256'])
+
         package_filename = requirement['url'].split('/')[-1]
-        # TODO: make async
-        index.download_file(
-            requirement['url'],
-            destfile=package_filename,
-            digest=('sha256', requirement['sha256']),
-        )
+        with open(package_filename, 'wb') as fp:
+            fp.write(contents)
 
 
 async def download_all(requirements: List[dict]):
-    return await asyncio.gather(*[
-        download(requirement) for requirement in requirements
-    ])
+    async with ClientSession() as session:
+        return await asyncio.gather(*[
+            download(session, requirement) for requirement in requirements
+        ])
 
 
 async def install(requirements: List[dict]):
