@@ -1,3 +1,10 @@
+0.4.2 (2018-09-08)
+------------------
+
+* Support `sha1` and `md5` package digests
+
+* Concurrent package downloads during `dotlock install`
+
 0.4.1 (2018-09-03)
 ------------------
 

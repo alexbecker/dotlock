@@ -95,8 +95,6 @@ Roadmap and Limitations
 
 Planned features:
 
-* Concurrent package downloads in ``dotlock install``: target ``0.4.2``
-
 * Local dependencies: target ``0.5.0``
 
 * Richer specifier support: target ``0.6.0``
