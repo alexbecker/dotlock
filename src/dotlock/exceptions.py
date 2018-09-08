@@ -41,3 +41,12 @@ class VCSException(PackageResolutionError):
 
 class SystemException(Exception):
     pass
+
+
+class HashMismatchError(PackageResolutionError):
+    def __init__(self, name, version, actual, expected):
+        self.name = name
+        self.version = version
+        self.actual = actual
+        self.expected = expected
+        super(f'Hash mismatch for {name} {version}: {actual} (actual) != {expected} (expected)')

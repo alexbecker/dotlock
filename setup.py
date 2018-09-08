@@ -35,7 +35,6 @@ setup(
     },
     install_requires=[
         'aiohttp>=3.1',
-        'distlib',
         'packaging',
         'pip>=9.0',
         'setuptools>=39.0',

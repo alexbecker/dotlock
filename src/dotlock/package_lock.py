@@ -57,13 +57,13 @@ def load_package_lock(file_path: str) -> dict:
     return lock_data
 
 
-def merge_requirement_lists(requirement_lists: List[List[dict]]) -> List[dict]:
-    requirements = []
-    requirement_names: Set[str] = set()
-    for rl in requirement_lists:
+def merge_candidate_lists(candidate_lists: List[List[dict]]) -> List[dict]:
+    candidates = []
+    candidate_names: Set[str] = set()
+    for rl in candidate_lists:
         for r in rl:
             name = r['name']
-            if name not in requirement_names:
-                requirements.append(r)
-                requirement_names.add(name)
-    return requirements
+            if name not in candidate_names:
+                candidates.append(r)
+                candidate_names.add(name)
+    return candidates
