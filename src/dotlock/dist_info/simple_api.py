@@ -9,7 +9,7 @@ import sys
 import re
 
 from aiohttp import ClientSession
-from packaging.version import Version
+from packaging.version import Version, InvalidVersion
 from packaging.specifiers import SpecifierSet
 
 from dotlock.exceptions import UnsupportedHashFunctionError
@@ -77,39 +77,37 @@ async def get_candidate_infos(
             raise UnsupportedHashFunctionError(hash_alg)
 
         filename = candidate_url.path.split('/')[-1]
-        if filename.endswith('.whl'):
-            package_type = PackageType.bdist_wheel
-            if not is_supported(filename):
-                logger.debug('Skipping unsupported bdist %s', filename)
-                continue
 
-            candidate_infos.append(CandidateInfo(
-                name=name,
-                version=get_wheel_version(filename),
-                package_type=package_type,
-                source=source,
-                url=urldefrag(candidate_url.geturl()).url,  # Strip [hash_alg]= fragment.
-                vcs_url=None,
-                hash_alg=hash_alg,
-                hash_val=hash_val,
-            ))
-        else:
-            package_type = PackageType.sdist
+        try:
+            if filename.endswith('.whl'):
+                package_type = PackageType.bdist_wheel
+                if not is_supported(filename):
+                    logger.debug('Skipping unsupported bdist %s', filename)
+                    continue
 
-            parsed_filename = _SDIST_FILENAME_RE.match(filename)
-            if not parsed_filename:
-                logging.debug(f'Skipping unrecognized filename {filename}')
-                continue
+                version = get_wheel_version(filename)
+            else:
+                package_type = PackageType.sdist
 
-            candidate_infos.append(CandidateInfo(
-                name=name,
-                version=Version(parsed_filename.group('ver')),
-                package_type=package_type,
-                source=source,
-                url=urldefrag(candidate_url.geturl()).url,  # Strip [hash_alg]= fragment.
-                vcs_url=None,
-                hash_alg=hash_alg,
-                hash_val=hash_val,
-            ))
+                parsed_filename = _SDIST_FILENAME_RE.match(filename)
+                if not parsed_filename:
+                    logging.debug(f'Skipping unrecognized filename {filename}')
+                    continue
+
+                version = Version(parsed_filename.group('ver'))
+        except InvalidVersion:
+            logger.warning('Skipping invalid version for file %s', filename)
+            continue
+
+        candidate_infos.append(CandidateInfo(
+            name=name,
+            package_type=package_type,
+            version=version,
+            source=source,
+            url=urldefrag(candidate_url.geturl()).url,  # Strip [hash_alg]= fragment.
+            vcs_url=None,
+            hash_alg=hash_alg,
+            hash_val=hash_val,
+        ))
 
     return candidate_infos
