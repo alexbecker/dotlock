@@ -3,7 +3,7 @@ For interfacing with the Simple Repository API specified in PEP 503.
 """
 from html.parser import HTMLParser
 from typing import List, Optional
-from urllib.parse import urlparse, urldefrag, ParseResult
+from urllib.parse import urlparse, urldefrag, ParseResult, urljoin
 import logging
 import sys
 import re
@@ -66,6 +66,10 @@ async def get_candidate_infos(
 
     candidate_infos = []
     for candidate_url in parser.urls:
+        if candidate_url.hostname is None:
+            # Convert the relative URL to an absolute URL
+            candidate_url = urlparse(urljoin(source, candidate_url.geturl()))
+
         if not candidate_url.fragment:
             raise UnsupportedHashFunctionError(hash_function=None)
         hash_alg, hash_val = candidate_url.fragment.split('=')
