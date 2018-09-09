@@ -1,3 +1,12 @@
+0.4.3 (2018-09-09)
+------------------
+
+This is a minor release to fix some bugs in simple API handling:
+
+* Handle relative URLs
+
+* Skip invalid version numbers instead of erroring out
+
 0.4.2 (2018-09-08)
 ------------------
 
