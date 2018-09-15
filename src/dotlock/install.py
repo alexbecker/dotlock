@@ -50,19 +50,16 @@ async def download_all(candidates: List[dict]):
 
 
 async def install(candidates: List[dict]):
-    venv_path = os.path.join(os.getcwd(), 'venv')
+    python_path = os.path.join(os.getcwd(), 'venv', 'bin', 'python')
 
     with temp_working_dir('install'):
         await download_all(candidates)
         for candidate in candidates:
             args = [
+                python_path, '-m',
                 'pip', 'install',
-                # Specify venv as the install target.
-                '--prefix', venv_path,
                 # Stop pip from checking PyPI (although this should be redundant).
                 '--no-index',
-                # For some reason pip tries to uninstall stuff outside ./venv without this.
-                '--ignore-installed',
                 # Skip installing/verifying dependencies, since we have already installed them in previous iterations.
                 '--no-deps',
                 # Installing sdists that use build isolation with --no-index is broken,
