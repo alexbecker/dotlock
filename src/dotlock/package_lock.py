@@ -1,6 +1,7 @@
-from typing import Dict, List, Set, Tuple
+from typing import Dict, Iterable, Tuple
 import json
 
+from dotlock.dist_info.dist_info import CandidateInfo
 from dotlock.exceptions import LockEnvironmentMismatch
 from dotlock.resolve import Requirement, candidate_topo_sort
 from dotlock.package_json import PackageJSON
@@ -9,16 +10,8 @@ from dotlock._vendored.pep425tags import get_impl_tag, get_abi_tag, get_platform
 
 def candidate_list(requirements: Tuple[Requirement, ...]) -> Tuple[Dict[str, str], ...]:
     return tuple(
-        {
-            'name': candidate.info.name,
-            'version': str(candidate.info.version),
-            'package_type': candidate.info.package_type.name,
-            'source': candidate.info.source,
-            'url': candidate.info.url,
-            'vcs_url': candidate.info.vcs_url,
-            'hash_alg': candidate.info.hash_alg,
-            'hash_val': candidate.info.hash_val,
-        } for candidate in candidate_topo_sort(requirements)
+        candidate.info.to_json()
+        for candidate in candidate_topo_sort(requirements)
     )
 
 
@@ -58,13 +51,12 @@ def load_package_lock(file_path: str) -> dict:
     return lock_data
 
 
-def merge_candidate_lists(candidate_lists: List[List[dict]]) -> List[dict]:
-    candidates = []
-    candidate_names: Set[str] = set()
-    for rl in candidate_lists:
-        for r in rl:
-            name = r['name']
-            if name not in candidate_names:
-                candidates.append(r)
-                candidate_names.add(name)
-    return candidates
+def get_locked_candidates(lock_data: dict, extras: Iterable[str]) -> Tuple[CandidateInfo, ...]:
+    candidate_lists = [lock_data['default']] + [lock_data['extras'][extra] for extra in extras]
+    # Use a dictionary to remove duplicates.
+    by_name = {
+        c['name']: CandidateInfo.from_json(c)
+        for cl in candidate_lists
+        for c in cl
+    }
+    return tuple(by_name.values())

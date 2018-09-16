@@ -7,7 +7,7 @@ from typing import NoReturn
 from dotlock.exceptions import LockEnvironmentMismatch
 from dotlock.graph import graph_resolution
 from dotlock.package_json import PackageJSON
-from dotlock.package_lock import write_package_lock, load_package_lock, merge_candidate_lists
+from dotlock.package_lock import write_package_lock, load_package_lock, get_locked_candidates
 from dotlock.init import init
 from dotlock.install import install
 from dotlock.run import run
@@ -92,10 +92,7 @@ def _main(*args) -> int:
                          e.env_key, e.locked_value, e.env_value)
             return -1
 
-        default_reqs = package_lock['default']
-        extras_reqs = [package_lock['extras'][extra] for extra in install_args.extras]
-        candidates = merge_candidate_lists([default_reqs] + extras_reqs)
-
+        candidates = get_locked_candidates(package_lock, install_args.extras)
         future = install(candidates)
         loop.run_until_complete(future)
 

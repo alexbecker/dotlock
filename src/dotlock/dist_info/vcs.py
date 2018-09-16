@@ -1,7 +1,7 @@
 import asyncio
 from typing import List
 
-from dotlock.dist_info.dist_info import CandidateInfo
+from dotlock.dist_info.dist_info import CandidateInfo, PackageType
 from dotlock.dist_info.sdist_handling import get_local_package_requirements
 from dotlock.exceptions import VCSException
 from dotlock.tempdir import temp_working_dir
@@ -37,7 +37,7 @@ async def clone(vcs_url: str):
 
 
 async def get_vcs_requirement_infos(candidate_info: CandidateInfo):
-    assert candidate_info.vcs_url
+    assert candidate_info.package_type == PackageType.vcs
     with temp_working_dir():
-        clone_dir_name = await clone(candidate_info.vcs_url)
+        clone_dir_name = await clone(candidate_info.location)
         return get_local_package_requirements(candidate_info.name, clone_dir_name)

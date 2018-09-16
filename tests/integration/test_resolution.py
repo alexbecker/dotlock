@@ -1,6 +1,5 @@
 import sys
 
-from packaging.specifiers import SpecifierSet
 import pytest
 
 from dotlock import resolve
@@ -31,13 +30,7 @@ async def test_aiohttp(aiohttp_resolved_requirements):
 async def test_certbot():
     requirements = [
         resolve.Requirement(
-            info=resolve.RequirementInfo(
-                name='certbot',
-                specifier=SpecifierSet('==0.23.0'),
-                extras=tuple(),
-                marker=None,
-                vcs_url=None,
-            ),
+            info=resolve.RequirementInfo.from_specifier_str('certbot', '==0.23.0'),
             parent=None,
         ),
     ]
@@ -93,13 +86,7 @@ async def test_pyrfc3339():
     """
     requirements = [
         resolve.Requirement(
-            info=resolve.RequirementInfo(
-                name='pyrfc3339',
-                specifier=SpecifierSet('==1.0'),
-                extras=tuple(),
-                marker=None,
-                vcs_url=None,
-            ),
+            info=resolve.RequirementInfo.from_specifier_str('pyrfc3339', '==1.0'),
             parent=None,
         ),
     ]

@@ -55,13 +55,13 @@ async def get_sdist_requirements(session: ClientSession, candidate_info: Candida
     assert candidate_info.package_type == PackageType.sdist
     logger.debug('%s is an sdist, doing the sdist dance to get requirements', candidate_info.name)
 
-    url = candidate_info.url
+    url = candidate_info.location
     filename = url.split('/')[-1]
 
     with temp_working_dir():
         # Download the tarball.
-        logger.debug('downloading archive %s', candidate_info.url)
-        async with session.get(candidate_info.url) as response:
+        logger.debug('downloading archive %s', url)
+        async with session.get(url) as response:
             with open(filename, 'wb') as fp:
                 async for chunk in response.content.iter_any():
                     fp.write(chunk)

@@ -7,7 +7,7 @@ from dotlock.resolve import PackageType, RequirementInfo, Requirement, resolve_r
 def parse_requirements(requirement_dicts: Dict[str, str]) -> Tuple[Requirement, ...]:
     return tuple(
         Requirement(
-            info=RequirementInfo.from_specifier_or_vcs(name, specifier),
+            info=RequirementInfo.from_specifier_str(name, specifier),
             parent=None,
         ) for name, specifier in requirement_dicts.items()
     )

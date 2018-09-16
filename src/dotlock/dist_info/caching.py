@@ -20,7 +20,7 @@ with setup_script_path.open() as fp:
 
 
 def cache_filename():
-    schema_version = '0.3'
+    schema_version = '0.4'
     impl = get_impl_tag()
     abi = get_abi_tag()
     platform = get_platform()
@@ -48,20 +48,19 @@ def get_cached_candidate_infos(
         name: str,
 ) -> Optional[List[CandidateInfo]]:
     query = connection.execute(
-        'SELECT name, version, package_type, source, url, hash_alg, hash_val FROM candidate_infos WHERE name=?',
+        'SELECT name, version, package_type, source, location, hash_alg, hash_val FROM candidate_infos WHERE name=?',
         (name,)
     )
     results = [
         CandidateInfo(
-            name=row[0],
-            version=Version(row[1]),
-            package_type=PackageType[row[2]],
-            source=row[3],
-            url=row[4],
-            vcs_url=None,
-            hash_alg=row[5],
-            hash_val=row[6],
-        ) for row in query.fetchall()
+            name=name,
+            version=Version(version),
+            package_type=PackageType[package_type],
+            source=source,
+            location=location,
+            hash_alg=hash_alg,
+            hash_val=hash_val,
+        ) for name, version, package_type, source, location, hash_alg, hash_val in query.fetchall()
     ]
 
     if results:
@@ -78,14 +77,14 @@ def set_cached_candidate_infos(
 ):
     for c in candidate_infos:
         connection.execute(
-            'INSERT INTO candidate_infos (name, version, package_type, source, url, hash_alg, hash_val, requirements_cached) '
+            'INSERT INTO candidate_infos (name, version, package_type, source, location, hash_alg, hash_val, requirements_cached) '
             'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             (
                 c.name,
                 str(c.version),
                 c.package_type.name,
                 c.source,
-                c.url,
+                c.location,
                 c.hash_alg,
                 c.hash_val,
                 False,
@@ -112,18 +111,14 @@ def get_cached_requirement_infos(
 
     logger.debug('Cache HIT for requirement_infos %s', candidate_info)
     query = connection.execute(
-        'SELECT name, vcs_url, specifier, extras, marker FROM requirement_infos '
+        'SELECT name, specifier, extras, marker FROM requirement_infos '
         'WHERE candidate_hash=?',
         (candidate_info.hash_val,)
     )
     return [
-        RequirementInfo(
-            name=name,
-            vcs_url=vcs_url,
-            specifier=None if (vcs_url or specifier == '*') else SpecifierSet(specifier),
-            extras=tuple(extras.split(',')) if extras else tuple(),
-            marker=marker and Marker(marker),
-        ) for (name, vcs_url, specifier, extras, marker) in query.fetchall()
+        RequirementInfo.from_specifier_str(
+            name, specifier, extras, marker,
+        ) for (name, specifier, extras, marker) in query.fetchall()
     ]
 
 
@@ -134,12 +129,11 @@ def set_cached_requirement_infos(
 ):
     for r in requirement_infos:
         connection.execute(
-            'INSERT INTO requirement_infos (candidate_hash, name, vcs_url, specifier, extras, marker) '
-            'VALUES (?, ?, ?, ?, ?, ?)',
+            'INSERT INTO requirement_infos (candidate_hash, name, specifier, extras, marker) '
+            'VALUES (?, ?, ?, ?, ?)',
             (
                 candidate_info.hash_val,
                 r.name,
-                r.vcs_url,
                 str(r.specifier) if r.specifier else '*',
                 ','.join(r.extras) if r.extras else None,
                 r.marker and str(r.marker),

@@ -71,8 +71,7 @@ async def get_candidate_infos(
                 version=version,
                 package_type=package_type,
                 source=source,
-                url=distribution['url'],
-                vcs_url=None,
+                location=distribution['url'],
                 hash_alg=hash_alg,
                 hash_val=hash_val,
             ))

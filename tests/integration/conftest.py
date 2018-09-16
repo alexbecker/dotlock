@@ -1,28 +1,17 @@
 from pathlib import Path
-import logging
 
 import pytest
 import virtualenv
-from packaging.specifiers import SpecifierSet
 
 from dotlock import resolve
 from dotlock.tempdir import temp_working_dir
-
-
-logging.getLogger('dotlock').setLevel(logging.DEBUG)
 
 
 @pytest.fixture(name='aiohttp_resolved_requirements')
 async def resolve_aiohttp_requirements(event_loop):
     requirements = [
         resolve.Requirement(
-            info=resolve.RequirementInfo(
-                name='aiohttp',
-                vcs_url=None,
-                specifier=SpecifierSet('==3.1.2'),
-                extras=tuple(),
-                marker=None,
-            ),
+            info=resolve.RequirementInfo.from_specifier_str('aiohttp', '==3.1.2'),
             parent=None,
         ),
     ]
