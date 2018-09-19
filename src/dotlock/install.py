@@ -22,6 +22,8 @@ async def download(session: ClientSession, candidate: CandidateInfo):
         clone_dir_name = await clone(candidate.location)
         # Rename the cloned directory so it is unique and easy to install from.
         os.rename(clone_dir_name, candidate.name)
+    elif candidate.package_type == PackageType.local:
+        pass  # It's a local file.
     else:
         logger.info('Downloading %s from %s', candidate.name, candidate.location)
 
@@ -68,6 +70,8 @@ async def install(candidates: Sequence[CandidateInfo]):
             ]
             if candidate.package_type == PackageType.vcs:
                 target_name = f'./{candidate.name}'
+            elif candidate.package_type == PackageType.local:
+                target_name = candidate.location
             else:
                 # We can't just use candidate.name as the package name because
                 # pip won't find the file if its (potentially non-canonical) name

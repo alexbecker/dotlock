@@ -26,6 +26,7 @@ class PackageType(IntEnum):
     bdist_rpm = auto()
     bdist_wheel = auto()
     vcs = auto()
+    local = auto()
 
 
 class SpecifierType(Enum):
@@ -107,6 +108,18 @@ class RequirementInfo(namedtuple(
                     hash_val=None,  # FIXME
                 )
             ]
+        elif self.specifier_type == SpecifierType.path:
+            candidate_infos = [
+                CandidateInfo(
+                    name=self.name,
+                    version=None,
+                    package_type=PackageType.local,
+                    source=None,
+                    location=self.specifier,
+                    hash_alg=None,  # FIXME
+                    hash_val=None,  # FIXME
+                )
+            ]
         else:
             cached = None
             if not update:
@@ -159,10 +172,10 @@ class CandidateInfo(namedtuple(
         from dotlock.dist_info.wheel_handling import get_bdist_wheel_requirements
         from dotlock.dist_info.caching import get_cached_requirement_infos, set_cached_requirement_infos
         from dotlock.dist_info.package_indices import get_requirment_infos
-        from dotlock.dist_info.sdist_handling import get_sdist_requirements
+        from dotlock.dist_info.sdist_handling import get_sdist_requirements, get_local_package_requirements
         from dotlock.dist_info.vcs import get_vcs_requirement_infos
 
-        uncachable_types = (PackageType.vcs,)
+        uncachable_types = (PackageType.vcs, PackageType.local)
         if self.package_type not in uncachable_types:
             requirement_infos = get_cached_requirement_infos(connection, self)
             if requirement_infos is not None:
@@ -170,6 +183,8 @@ class CandidateInfo(namedtuple(
 
         if self.package_type == PackageType.vcs:
             requirement_infos = await get_vcs_requirement_infos(self)
+        elif self.package_type == PackageType.local:
+            requirement_infos = get_local_package_requirements(self.name, self.location)
         elif self.package_type == PackageType.sdist:
             # Indices do not list dependencies for sdists; they must be downloaded.
             requirement_infos = await get_sdist_requirements(session, self)
