@@ -73,10 +73,14 @@ package.json example
         ],
         "default": {
             // Requirements in the form "package-name": "specifier".
-            // Specifiers may be "*", or a version number preceded by any of <, <=, >, >=, or ==.
+            // Version specifiers may be "*", or a version number preceded by any of <, <=, >, >=, or ==.
             // Multiple specifiers can be separated by commas, e.g. ">=2.1,<3.0".
             "setuptools": ">=39.0",
-            "virtualenv": "*"
+            "virtualenv": "*",
+            // Git, Mercurial and Subversion dependencies are also supported.
+            "requests": "git+git://github.com/requests/requests@v2.19.1",
+            // Local file paths can be used too, but this loses integrity guarantees.
+            "mypackage": "~/projects/mypackage"
         },
         "extras": {
             // You can specify groups of additional dependencies that will be installed by
@@ -95,7 +99,9 @@ Roadmap and Limitations
 
 Planned features:
 
-* Local dependencies: target ``0.5.0``
+* Extras support in ``package.json``: target ``0.6.0``
+
+* Marker support in ``package.json``: target ``0.6.0``
 
 * Richer specifier support: target ``0.6.0``
 
