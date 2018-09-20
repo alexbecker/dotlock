@@ -196,6 +196,7 @@ class CandidateInfo(namedtuple(
                 requirement_infos = await get_bdist_wheel_requirements(session, self)
         else:
             raise Exception(f'Unsupported package type {self.package_type.name}')
+        assert requirement_infos is not None
 
         if self.package_type not in uncachable_types:
             set_cached_requirement_infos(connection, self, requirement_infos)
