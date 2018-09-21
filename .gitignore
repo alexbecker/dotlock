@@ -3,7 +3,7 @@ venv/
 /package.lock.json
 build
 dist
-dotlock.egg-info/
+*.egg-info/
 .cache/
 .tox/
 .mypy_cache

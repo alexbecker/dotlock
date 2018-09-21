@@ -22,5 +22,5 @@ async def test_get_wheel_file_requirements():
         requirements = get_local_package_requirements('idna-ssl', package_path)
 
     assert requirements == [
-        RequirementInfo.from_specifier_or_vcs('idna', '>=2.0'),
+        RequirementInfo.from_specifier_str('idna', '>=2.0'),
     ]

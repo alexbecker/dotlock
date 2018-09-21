@@ -8,7 +8,7 @@ from packaging.specifiers import SpecifierSet
 from packaging.utils import canonicalize_name
 from pkg_resources import parse_requirements
 
-from dotlock.dist_info.dist_info import RequirementInfo, CandidateInfo, PackageType
+from dotlock.dist_info.dist_info import RequirementInfo, CandidateInfo, PackageType, SpecifierType
 from dotlock.markers import Marker
 from dotlock.tempdir import temp_working_dir
 
@@ -20,13 +20,13 @@ async def get_bdist_wheel_requirements(session: ClientSession, candidate_info: C
     assert candidate_info.package_type == PackageType.bdist_wheel
     logger.debug('%s has null requirements in index, so we are forced to download it', candidate_info.name)
 
-    url = candidate_info.url
+    url = candidate_info.location
     filename = url.split('/')[-1]
 
     with temp_working_dir():
         # Download the wheel.
-        logger.debug('downloading wheel %s', candidate_info.url)
-        async with session.get(candidate_info.url) as response:
+        logger.debug('downloading wheel %s', url)
+        async with session.get(url) as response:
             with open(filename, 'wb') as fp:
                 async for chunk in response.content.iter_any():
                     fp.write(chunk)
@@ -57,7 +57,8 @@ def get_wheel_file_requirements(filename: str) -> List[RequirementInfo]:
         marker = Marker(str(r.marker)) if r.marker else None  # type: ignore
         rv.append(RequirementInfo(
             name=canonicalize_name(r.name),  # type: ignore
-            vcs_url=None,  # TODO: can wheels depend on VCS urls?
+            # TODO: can wheels depend on VCS urls?
+            specifier_type=SpecifierType.version,
             specifier=specifier,
             extras=tuple(r.extras),
             marker=marker,

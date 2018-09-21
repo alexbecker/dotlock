@@ -104,8 +104,7 @@ async def get_candidate_infos(
             package_type=package_type,
             version=version,
             source=source,
-            url=urldefrag(candidate_url.geturl()).url,  # Strip [hash_alg]= fragment.
-            vcs_url=None,
+            location=urldefrag(candidate_url.geturl()).url,  # Strip [hash_alg]= fragment.
             hash_alg=hash_alg,
             hash_val=hash_val,
         ))

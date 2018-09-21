@@ -1,3 +1,10 @@
+0.5.0 (2018-09-19)
+------------------
+
+* Support local package requirements
+
+* Fix script installs using wrong python executible
+
 0.4.3 (2018-09-09)
 ------------------
 

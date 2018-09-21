@@ -49,4 +49,4 @@ class HashMismatchError(PackageResolutionError):
         self.version = version
         self.actual = actual
         self.expected = expected
-        super(f'Hash mismatch for {name} {version}: {actual} (actual) != {expected} (expected)')
+        super().__init__(f'Hash mismatch for {name} {version}: {actual} (actual) != {expected} (expected)')
