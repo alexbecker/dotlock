@@ -28,7 +28,10 @@ class PackageJSON:
     def load(file_path: str) -> 'PackageJSON':
         with open(file_path) as fp:
             contents = json.load(fp)
+        return PackageJSON.parse(contents)
 
+    @staticmethod
+    def parse(contents: dict) -> 'PackageJSON':
         return PackageJSON(
             sources=contents['sources'],
             default=parse_requirements(contents['default']),
