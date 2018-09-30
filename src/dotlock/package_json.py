@@ -1,15 +1,28 @@
-from typing import Dict, Iterable, Tuple, List
+from typing import Dict, Iterable, Tuple, List, Union
 import json
 
 from dotlock.resolve import PackageType, RequirementInfo, Requirement, resolve_requirements_list
 
 
-def parse_requirements(requirement_dicts: Dict[str, str]) -> Tuple[Requirement, ...]:
+# The RHS of a requirement can either be a string or a dictionary.
+RequirementValue = Union[str, Dict[str, Union[str, List[str]]]]
+
+
+def parse_requirement(name: str, value: RequirementValue):
+    if isinstance(value, str):
+        return RequirementInfo.from_specifier_str(name, value)
+    return RequirementInfo.from_specifier_str(
+        name, specifier_str=value['specifier'],
+        extras=value.get('extras', []), marker=value.get('marker'),
+    )
+
+
+def parse_requirements(requirement_dicts: Dict[str, RequirementValue]) -> Tuple[Requirement, ...]:
     return tuple(
         Requirement(
-            info=RequirementInfo.from_specifier_str(name, specifier),
+            info=parse_requirement(name, value),
             parent=None,
-        ) for name, specifier in requirement_dicts.items()
+        ) for name, value in requirement_dicts.items()
     )
 
 

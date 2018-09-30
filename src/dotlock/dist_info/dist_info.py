@@ -69,7 +69,7 @@ class RequirementInfo(namedtuple(
             name=name,
             specifier_type=specifier_type,
             specifier=specifier,
-            extras=tuple(extras.split(',')) if extras else tuple(),
+            extras=tuple(extras) if extras else tuple(),
             marker=marker and Marker(marker),
         )
 
