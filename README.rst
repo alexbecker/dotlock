@@ -79,6 +79,12 @@ package.json example
             "virtualenv": "*",
             // Git, Mercurial and Subversion dependencies are also supported.
             "requests": "git+git://github.com/requests/requests@v2.19.1",
+            // If you need extras or markers, supply a dictionary instead of a string.
+            "idna_ssl": {
+                "specifier": "*",
+                "marker": "python_version < 3.7",  // See PEP 496
+                "extras": ["tests"],
+            },
             // Local file paths can be used too, but this loses integrity guarantees.
             "mypackage": "~/projects/mypackage"
         },
@@ -98,10 +104,6 @@ Roadmap and Limitations
 -----------------------
 
 Planned features:
-
-* Extras support in ``package.json``: target ``0.6.0``
-
-* Marker support in ``package.json``: target ``0.6.0``
 
 * Richer specifier support: target ``0.6.0``
 
