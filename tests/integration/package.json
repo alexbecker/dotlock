@@ -7,7 +7,9 @@
     },
     "extras": {
         "tests": {
+            // extras can overwrite dependencies in the default section
             "aiohttp": ">3.1.0",
+            // pytest-aiohttp pulls in pytest, but specifying pytest explicitly lets us constrain the version
             "pytest": "<3.5",
             "pytest-aiohttp": "==0.3.0"
         }

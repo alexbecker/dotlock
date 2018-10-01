@@ -1,6 +1,6 @@
 from typing import Dict, Iterable, Tuple, List, Union
-import json
 
+from dotlock import json
 from dotlock.resolve import PackageType, RequirementInfo, Requirement, resolve_requirements_list
 
 
@@ -40,8 +40,8 @@ class PackageJSON:
     @staticmethod
     def load(file_path: str) -> 'PackageJSON':
         with open(file_path) as fp:
-            contents = json.load(fp)
-        return PackageJSON.parse(contents)
+            contents = fp.read()
+        return PackageJSON.parse(json.loads(contents))
 
     @staticmethod
     def parse(contents: dict) -> 'PackageJSON':
