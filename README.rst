@@ -105,9 +105,7 @@ Roadmap and Limitations
 
 Planned features:
 
-* Richer specifier support: target ``0.6.0``
-
-* Comments in ``package.json``: target ``0.6.0``
+* ``dotlock install --skip-lock`` command: target ``0.6.0``
 
 * Support/CI testing on non-linux platforms: target ``1.0.0``
 
