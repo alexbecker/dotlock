@@ -10,6 +10,7 @@ from dotlock.package_json import PackageJSON
 from dotlock.package_lock import write_package_lock, load_package_lock, get_locked_candidates
 from dotlock.init import init
 from dotlock.install import install
+from dotlock.install_skip_lock import install_skip_lock
 from dotlock.run import run
 
 
@@ -45,6 +46,10 @@ lock_parser.add_argument('--update', action='store_true', default=False)
 install_parser = argparse.ArgumentParser(
     prog='dotlock install',
     description='Install dependencies from package.lock.json.',
+)
+install_parser.add_argument(
+    '--skip-lock', action='store_true', default=False,
+    help='Install dependencies directly from package.json instead of package.lock.json.',
 )
 install_parser.add_argument('--extras', nargs='+', default=[])
 
@@ -85,16 +90,18 @@ def _main(*args) -> int:
     if command == 'install':
         install_args = install_parser.parse_args(args)
 
-        try:
-            package_lock = load_package_lock('package.lock.json')
-        except LockEnvironmentMismatch as e:
-            logger.error('package.lock.json was generated with %s %s, but you are using %s',
-                         e.env_key, e.locked_value, e.env_value)
-            return -1
-
-        candidates = get_locked_candidates(package_lock, install_args.extras)
-        future = install(candidates)
-        loop.run_until_complete(future)
+        if install_args.skip_lock:
+            install_skip_lock(package_json, install_args.extras)
+        else:
+            try:
+                package_lock = load_package_lock('package.lock.json')
+            except LockEnvironmentMismatch as e:
+                logger.error('package.lock.json was generated with %s %s, but you are using %s',
+                             e.env_key, e.locked_value, e.env_value)
+                return -1
+            candidates = get_locked_candidates(package_lock, install_args.extras)
+            future = install(candidates)
+            loop.run_until_complete(future)
 
     return 0
 
