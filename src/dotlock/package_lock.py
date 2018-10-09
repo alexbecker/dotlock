@@ -35,10 +35,12 @@ def write_package_lock(package_json: PackageJSON) -> None:
         json.dump(data, fp, indent=4, sort_keys=True)
 
 
-def load_package_lock(file_path: str) -> dict:
-    with open(file_path) as fp:
-        lock_data = json.load(fp)
+def load_package_lock() -> dict:
+    with open('package.lock.json') as fp:
+        return json.load(fp)
 
+
+def check_lock_environment(lock_data: dict) -> None:
     if lock_data['python'] != get_impl_tag():
         raise LockEnvironmentMismatch('python', lock_data['python'], get_impl_tag())
     if lock_data['abi'] != get_abi_tag():
@@ -47,8 +49,6 @@ def load_package_lock(file_path: str) -> dict:
         raise LockEnvironmentMismatch('platform', lock_data['platform'], get_platform())
     if lock_data['manylinux1'] != is_manylinux1_compatible():
         raise LockEnvironmentMismatch('manylinux1', lock_data['manylinux1'], is_manylinux1_compatible())
-
-    return lock_data
 
 
 def get_locked_candidates(lock_data: dict, extras: Iterable[str]) -> Tuple[CandidateInfo, ...]:

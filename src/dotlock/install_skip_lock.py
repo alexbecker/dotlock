@@ -25,7 +25,7 @@ def install_skip_lock(package_json: PackageJSON, extras: Iterable[str]):
     While it presents a similar API as install, it is completely different because
     it ignores the lockfile and uses package.json instead.
     """
-    requirements = package_json.default
+    requirements = list(package_json.default)
     for extra in extras:
         requirements.extend(package_json.extras[extra])
     reqs = [requirement.info for requirement in requirements]

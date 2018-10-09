@@ -4,10 +4,11 @@ import logging
 import sys
 from typing import NoReturn
 
+from dotlock.bundle import bundle
 from dotlock.exceptions import LockEnvironmentMismatch
 from dotlock.graph import graph_resolution
 from dotlock.package_json import PackageJSON
-from dotlock.package_lock import write_package_lock, load_package_lock, get_locked_candidates
+from dotlock.package_lock import write_package_lock, load_package_lock, check_lock_environment, get_locked_candidates
 from dotlock.init import init
 from dotlock.install import install
 from dotlock.install_skip_lock import install_skip_lock
@@ -16,7 +17,7 @@ from dotlock.run import run
 
 base_parser = argparse.ArgumentParser(description='A Python package management utility.')
 base_parser.add_argument('--debug', action='store_true', default=False)
-base_parser.add_argument('command', choices=['init', 'run', 'graph', 'lock', 'install'])
+base_parser.add_argument('command', choices=['init', 'run', 'graph', 'lock', 'install', 'bundle'])
 base_parser.add_argument('args', nargs=argparse.REMAINDER, help='(varies by command)')
 
 init_parser = argparse.ArgumentParser(
@@ -52,6 +53,12 @@ install_parser.add_argument(
     help='Install dependencies directly from package.json instead of package.lock.json.',
 )
 install_parser.add_argument('--extras', nargs='+', default=[])
+
+bundle_parser = argparse.ArgumentParser(
+    prog='dotlock bundle',
+    description='Bundle dependencies into a bundle.tar.gz file that can be installed with install.sh.',
+)
+bundle_parser.add_argument('--extras', nargs='+', default=[])
 
 
 def _main(*args) -> int:
@@ -93,8 +100,10 @@ def _main(*args) -> int:
         if install_args.skip_lock:
             install_skip_lock(package_json, install_args.extras)
         else:
+            package_lock = load_package_lock()
+
             try:
-                package_lock = load_package_lock('package.lock.json')
+                check_lock_environment(package_lock)
             except LockEnvironmentMismatch as e:
                 logger.error('package.lock.json was generated with %s %s, but you are using %s',
                              e.env_key, e.locked_value, e.env_value)
@@ -102,6 +111,14 @@ def _main(*args) -> int:
             candidates = get_locked_candidates(package_lock, install_args.extras)
             future = install(candidates)
             loop.run_until_complete(future)
+    if command == 'bundle':
+        bundle_args = bundle_parser.parse_args(args)
+
+        package_lock = load_package_lock()
+        # Don't check package lock, because we aren't installing.
+        candidates = get_locked_candidates(package_lock, bundle_args.extras)
+        future = bundle(candidates)
+        loop.run_until_complete(future)
 
     return 0
 

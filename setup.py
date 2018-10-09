@@ -25,6 +25,7 @@ setup(
         'dotlock': [
             'dist_info/cache_schema.sql',
             'package.skeleton.json',
+            'install.sh',
         ],
     },
     entry_points={
