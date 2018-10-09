@@ -27,16 +27,3 @@ async def resolve_aiohttp_requirements(event_loop):
         update=False,
     )
     return requirements
-
-
-@pytest.fixture(name='activate_venv')
-def venv_fixture():
-    with temp_working_dir():
-        virtualenv.create_environment('venv')
-
-        def activate():
-            venv_script = Path('venv/bin/activate_this.py').absolute()
-            with venv_script.open() as fp:
-                exec(fp.read(), {'__file__': venv_script})
-
-        yield activate
