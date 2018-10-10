@@ -1,3 +1,10 @@
+0.6.0 (2018-10-10)
+------------------
+
+* New ``--skip-lock`` flag for ``dotlock install``
+
+* New ``dotlock bundle`` command
+
 0.5.2 (2018-10-05)
 ------------------
 
