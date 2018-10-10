@@ -4,7 +4,7 @@ dotlock
 .. image:: https://travis-ci.org/alexbecker/dotlock.svg?branch=master
     :target: https://travis-ci.org/alexbecker/dotlock
 
-Bringing sanity to Python dependency management.
+Fast and safe dependency management for Python applications.
 
 Motivation
 ----------
@@ -41,27 +41,17 @@ for metadata discovery and extraction, dependency resolution, dependency downloa
 To improve on ``pipenv``, ``dotlock`` handles most of these itself, relying on ``pip`` only to install
 already-downloaded dependencies.
 
-Usage
------
+Installation
+------------
 
-On your development machine, run:
+Dotlock can be installed with ``pip``, i.e. ``pip install dotlock``.
+It can be installed in an application's virtual environment, at the user level, or globally.
 
-.. code-block:: shell
+Development Setup
+-----------------
 
-    dotlock init  # Creates a virtualenv and skeleton package.lock.
-    dotlock lock  # Generates a package.lock.json file from package.json.
-
-Then on both development and deployed machines, run:
-
-.. code-block:: shell
-
-    dotlock install  # Installs exactly the distributions in package.lock.json.
-    dotlock run [program] [args]  # Runs [program] in the virtualenv.
-
-For more information, run ``dotlock -h`` or ``dotlock [command] -h``.
-
-package.json example
---------------------
+On your development machine, run ``dotlock init`` to create a virtualenv and a skeleton ``package.lock`` file.
+Add your sources and dependencies to ``package.lock``:
 
 .. code-block:: javascript
 
@@ -100,12 +90,40 @@ package.json example
         }
     }
 
+Then you can lock and install your dependencies:
+
+.. code-block:: shell
+
+    dotlock lock  # Creates package.lock.json.
+    dotlock install  # Installs exactly the distributions in package.lock.json.
+    # Either source venv/bin/activate to enter the virtualenv, or use dotlock run.
+    dotlock run [program] [args]  # Runs [program] in the virtualenv.
+
+For more information, run ``dotlock -h`` or ``dotlock [command] -h``.
+
+Deployment
+----------
+
+There are two ways to install your locked dependencies during deployment:
+
+* Install ``dotlock`` and run ``dotlock install`` in the application root directory.
+
+* Use ``dotlock bundle`` to create ``bundle.tar.gz`` and ``install.sh`` prior to deployment,
+  include these files in the deployment, and run ``./install.sh`` during deployment.
+
+Using ``dotlock bundle`` is preferred because it does not require installing ``dotlock`` in
+the deployed environment and does not depend on external services during deploy.
+
+Once the dependencies are installed, run your application with one of:
+
+* ``source venv/bin/activate; [program] [args]``
+
+* Assuming ``dotlock`` is installed: ``dotlock run [program] [args]``
+
 Roadmap and Limitations
 -----------------------
 
 Planned features:
-
-* ``dotlock install --skip-lock`` command: target ``0.6.0``
 
 * Support/CI testing on non-linux platforms: target ``1.0.0``
 
@@ -114,10 +132,6 @@ Features under consideration:
 * Support virtualenvs other than ``./venv``
 
 * Support versions of Python before 3.6
-
-* Integration with ``wheelhouse`` or similar dependency-bundling functionality
-
-Features you might want but are not planned:
 
 * Support locking for other platforms. This is not possible to do with perfect reliability,
   since the dependencies discovered by running ``setup.py`` may differ depending on what
