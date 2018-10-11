@@ -37,7 +37,7 @@ setup(
     install_requires=[
         'aiohttp>=3.1',
         'packaging',
-        'pip>=9.0',
+        'pip>=10.0',
         'setuptools>=39.0',
         'six',
         'virtualenv',
