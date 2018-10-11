@@ -1,4 +1,4 @@
-from typing import Dict, Iterable, Tuple
+from typing import Dict, Iterable, Tuple, Container, Optional
 import json
 
 from dotlock.dist_info.dist_info import CandidateInfo
@@ -51,12 +51,15 @@ def check_lock_environment(lock_data: dict) -> None:
         raise LockEnvironmentMismatch('manylinux1', lock_data['manylinux1'], is_manylinux1_compatible())
 
 
-def get_locked_candidates(lock_data: dict, extras: Iterable[str]) -> Tuple[CandidateInfo, ...]:
+def get_locked_candidates(
+        lock_data: dict, extras: Iterable[str], name_filter: Optional[Container[str]],
+) -> Tuple[CandidateInfo, ...]:
     candidate_lists = [lock_data['default']] + [lock_data['extras'][extra] for extra in extras]
     # Use a dictionary to remove duplicates.
     by_name = {
         c['name']: CandidateInfo.from_json(c)
         for cl in candidate_lists
         for c in cl
+        if name_filter is None or c['name'] in name_filter
     }
     return tuple(by_name.values())

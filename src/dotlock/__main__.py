@@ -53,6 +53,10 @@ install_parser.add_argument(
     help='Install dependencies directly from package.json instead of package.lock.json.',
 )
 install_parser.add_argument('--extras', nargs='+', default=[])
+install_parser.add_argument(
+    '--only', nargs='+',
+    help='Only install the listed packages. Useful when upgrading individual packages.',
+)
 
 bundle_parser = argparse.ArgumentParser(
     prog='dotlock bundle',
@@ -98,7 +102,7 @@ def _main(*args) -> int:
         install_args = install_parser.parse_args(args)
 
         if install_args.skip_lock:
-            install_skip_lock(package_json, install_args.extras)
+            install_skip_lock(package_json, install_args.extras, install_args.only)
         else:
             package_lock = load_package_lock()
 
@@ -108,7 +112,7 @@ def _main(*args) -> int:
                 logger.error('package.lock.json was generated with %s %s, but you are using %s',
                              e.env_key, e.locked_value, e.env_value)
                 return -1
-            candidates = get_locked_candidates(package_lock, install_args.extras)
+            candidates = get_locked_candidates(package_lock, install_args.extras, install_args.only)
             future = install(candidates)
             loop.run_until_complete(future)
     if command == 'bundle':
@@ -116,7 +120,7 @@ def _main(*args) -> int:
 
         package_lock = load_package_lock()
         # Don't check package lock, because we aren't installing.
-        candidates = get_locked_candidates(package_lock, bundle_args.extras)
+        candidates = get_locked_candidates(package_lock, bundle_args.extras, None)
         future = bundle(candidates)
         loop.run_until_complete(future)
 
