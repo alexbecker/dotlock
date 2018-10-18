@@ -127,6 +127,10 @@ Planned features:
 
 * Support/CI testing on non-linux platforms: target ``1.0.0``
 
+* Interpolate environment variables in ``sources``
+
+* Allow specifying indices for individual packages
+
 Features under consideration:
 
 * Support virtualenvs other than ``./venv``
