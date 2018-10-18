@@ -51,7 +51,11 @@ async def test_certbot():
     assert candidate_names == [
         'setuptools',
         'zope-interface',
+        'zope-hookable',
         'zope-event',
+        'zope-deprecation',
+        'zope-proxy',
+        'zope-deferredimport',
         'zope-component',
         'pytz',
         'pyrfc3339',
