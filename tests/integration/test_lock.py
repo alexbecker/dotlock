@@ -3,6 +3,7 @@ import sys
 
 import pytest
 
+from dotlock.env import environment, pep425tags
 from dotlock.package_json import PackageJSON
 from dotlock.package_lock import package_lock_data
 
@@ -17,10 +18,8 @@ async def test_lock():
     lock_data = package_lock_data(package_json)
 
     # Check that the various build env attributes are present
-    assert lock_data['python']
-    assert lock_data['abi']
-    assert lock_data['platform']
-    assert lock_data['manylinux1'] is not None
+    assert environment and (lock_data['environment'] == environment)
+    assert pep425tags and (lock_data['pep425tags'] == pep425tags)
 
     default_packages = {package['name'] for package in lock_data['default']}
     test_packages = {package['name'] for package in lock_data['extras']['tests']}

@@ -109,9 +109,13 @@ def _main(*args) -> int:
             try:
                 check_lock_environment(package_lock)
             except LockEnvironmentMismatch as e:
-                logger.error('package.lock.json was generated with %s %s, but you are using %s',
-                             e.env_key, e.locked_value, e.env_value)
-                return -1
+                logger.error(
+                    'The current environment does not match the one used to generate package.lock.json. '
+                    'The PEP425 tags do not match (%s "%s"!="%s"), '
+                    'so the wrong bdist_wheel distributions would be installed. '
+                    'Either re-lock in this environment, or bypass the lock file altogether using --skip-lock.',
+                    e.env_key, e.env_value, e.locked_value,
+                )
             candidates = get_locked_candidates(package_lock, install_args.extras, install_args.only)
             future = install(candidates)
             loop.run_until_complete(future)

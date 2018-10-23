@@ -5,13 +5,13 @@ from html.parser import HTMLParser
 from typing import List, Optional
 from urllib.parse import urlparse, urldefrag, ParseResult, urljoin
 import logging
-import sys
 import re
 
 from aiohttp import ClientSession
 from packaging.version import Version, InvalidVersion
 from packaging.specifiers import SpecifierSet
 
+from dotlock.env import pep425tags
 from dotlock.exceptions import UnsupportedHashFunctionError
 from dotlock.dist_info.dist_info import CandidateInfo, PackageType, hash_algorithms
 from dotlock.dist_info.wheel_filename_parsing import is_supported, get_wheel_version
@@ -37,12 +37,13 @@ class PackagePageHTMLParser(HTMLParser):
         if requires_python:
             requires_python = requires_python.replace('&gt;', '>').replace('&lt;', '<')
             python_specifier = SpecifierSet(requires_python)
-            python_version = Version('.'.join(str(n) for n in sys.version_info[:2]))
+            python_version = Version(pep425tags['version'])
             if not python_specifier.contains(python_version):
                 logger.debug('Skipping candidate for %s (requires python %s)', self.name, requires_python)
                 return
 
         self.urls.append(url)
+
 
 _SDIST_EXTS_RE = r'(\.tar\.gz|\.tar\.bz2|\.zip)'
 _SDIST_FILENAME_RE = re.compile(r'(?P<name>[a-z0-9\-]+)-(?P<ver>(\d+\.)*\d+[a-z0-9]*)' + _SDIST_EXTS_RE)

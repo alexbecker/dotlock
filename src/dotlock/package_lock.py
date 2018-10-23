@@ -1,11 +1,15 @@
 from typing import Dict, Iterable, Tuple, Container, Optional
+import logging
 import json
 
 from dotlock.dist_info.dist_info import CandidateInfo
+from dotlock.env import environment, pep425tags, default_environment, default_pep425tags
 from dotlock.exceptions import LockEnvironmentMismatch
 from dotlock.resolve import Requirement, candidate_topo_sort
 from dotlock.package_json import PackageJSON
-from dotlock._vendored.pep425tags import get_impl_tag, get_abi_tag, get_platform, is_manylinux1_compatible
+
+
+logger = logging.getLogger(__name__)
 
 
 def candidate_list(requirements: Tuple[Requirement, ...]) -> Tuple[Dict[str, str], ...]:
@@ -17,10 +21,8 @@ def candidate_list(requirements: Tuple[Requirement, ...]) -> Tuple[Dict[str, str
 
 def package_lock_data(package_json: PackageJSON) -> dict:
     return {
-        'python': get_impl_tag(),
-        'abi': get_abi_tag(),
-        'platform': get_platform(),
-        'manylinux1': is_manylinux1_compatible(),
+        'environment': environment,
+        'pep425tags': pep425tags,
         'default': candidate_list(package_json.default),
         'extras': {
             key: candidate_list(reqs)
@@ -41,14 +43,15 @@ def load_package_lock() -> dict:
 
 
 def check_lock_environment(lock_data: dict) -> None:
-    if lock_data['python'] != get_impl_tag():
-        raise LockEnvironmentMismatch('python', lock_data['python'], get_impl_tag())
-    if lock_data['abi'] != get_abi_tag():
-        raise LockEnvironmentMismatch('abi', lock_data['abi'], get_abi_tag())
-    if lock_data['platform'] != get_platform():
-        raise LockEnvironmentMismatch('platform', lock_data['platform'], get_platform())
-    if lock_data['manylinux1'] != is_manylinux1_compatible():
-        raise LockEnvironmentMismatch('manylinux1', lock_data['manylinux1'], is_manylinux1_compatible())
+    for key, value in default_pep425tags().items():
+        lock_value = lock_data['pep425tags'][key]
+        if value != lock_value:
+            raise LockEnvironmentMismatch(key, lock_value, value)
+    if default_environment() != lock_data['environment']:
+        logger.warning(
+            'The current environment does not match the one used to generate package.lock.json. '
+            'Marker evaluation may be inaccurate.'
+        )
 
 
 def get_locked_candidates(
