@@ -4,7 +4,6 @@ import subprocess
 import pytest
 
 from dotlock.__main__ import _main
-from dotlock.tempdir import temp_working_dir
 from tests import test_path
 
 
@@ -16,30 +15,29 @@ from tests import test_path
     ('https://pypi.org/pypi', 'distlib', 'hg+https://hg.python.org/distlib@0.1.7', '0.1.7'),
     ('https://pypi.org/pypi', 'fakepkg', str(test_path / 'fakepkg'), '1.2.3'),
 ])
-def test_package(source, name, spec, version):
-    with temp_working_dir('test'):
-        assert _main('init') == 0
+def test_package(source, name, spec, version, tempdir):
+    assert _main('init') == 0
 
-        with open('package.json') as fp:
-            package_json = json.load(fp)
+    with open('package.json') as fp:
+        package_json = json.load(fp)
 
-        package_json['sources'] = [source]
-        package_json['default'] = {name: spec}
-        with open('package.json', 'w') as fp:
-            json.dump(package_json, fp)
+    package_json['sources'] = [source]
+    package_json['default'] = {name: spec}
+    with open('package.json', 'w') as fp:
+        json.dump(package_json, fp)
 
-        # Use --update to bypass the cache.
-        assert _main('lock', '--update') == 0
-        assert _main('install') == 0
+    # Use --update to bypass the cache.
+    assert _main('lock', '--update') == 0
+    assert _main('install') == 0
 
-        # We have to run "run" in a subprocess so it doesn't hijack test execution.
-        run_process = subprocess.run(
-            [
-                'dotlock', 'run', 'python', '-c',
-                f'import {name}; print({name}.__version__)',
-            ],
-            stdout=subprocess.PIPE,
-        )
+    # We have to run "run" in a subprocess so it doesn't hijack test execution.
+    run_process = subprocess.run(
+        [
+            'dotlock', 'run', 'python', '-c',
+            f'import {name}; print({name}.__version__)',
+        ],
+        stdout=subprocess.PIPE,
+    )
 
-        output = run_process.stdout.decode('utf-8').strip()
-        assert output == version
+    output = run_process.stdout.decode('utf-8').strip()
+    assert output == version
