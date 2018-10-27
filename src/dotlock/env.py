@@ -1,6 +1,7 @@
 import json
 import logging
 from pathlib import Path
+from typing import Dict
 
 from packaging.markers import default_environment
 
@@ -12,8 +13,8 @@ from dotlock._vendored.pep425tags import (
 logger = logging.getLogger(__name__)
 
 env_file = Path('env.json')
-environment = {}
-pep425tags = {}
+environment: Dict[str, str] = {}
+pep425tags: Dict[str, str] = {}
 
 
 def default_pep425tags():
