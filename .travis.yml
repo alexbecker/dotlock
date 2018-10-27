@@ -6,8 +6,10 @@ matrix:
         - python: 3.7
           dist: xenial
           sudo: true
+        # Testing Python 3 on OS X is a pain.
+        - language: generic
+          python: 3.6
+          os: osx
 before_install:
-    - sudo apt-get update
-    - sudo apt-get install -y mercurial subversion
-    - pip install tox-travis
+    - ./before_install.sh
 script: tox
