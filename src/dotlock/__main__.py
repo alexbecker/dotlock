@@ -5,6 +5,7 @@ import sys
 from typing import NoReturn
 
 from dotlock.bundle import bundle
+from dotlock.env import dump
 from dotlock.exceptions import LockEnvironmentMismatch
 from dotlock.graph import graph_resolution
 from dotlock.package_json import PackageJSON
@@ -17,7 +18,7 @@ from dotlock.run import run
 
 base_parser = argparse.ArgumentParser(description='A Python package management utility.')
 base_parser.add_argument('--debug', action='store_true', default=False)
-base_parser.add_argument('command', choices=['init', 'run', 'graph', 'lock', 'install', 'bundle'])
+base_parser.add_argument('command', choices=['init', 'run', 'graph', 'lock', 'install', 'bundle', 'dump-env'])
 base_parser.add_argument('args', nargs=argparse.REMAINDER, help='(varies by command)')
 
 init_parser = argparse.ArgumentParser(
@@ -63,6 +64,11 @@ bundle_parser = argparse.ArgumentParser(
     description='Bundle dependencies into a bundle.tar.gz file that can be installed with install.sh.',
 )
 bundle_parser.add_argument('--extras', nargs='+', default=[])
+
+dump_env_parser = argparse.ArgumentParser(
+    prog='dotlock dump-env',
+    description='Write the current environment out to env.json.',
+)
 
 
 def _main(*args) -> int:
@@ -127,6 +133,10 @@ def _main(*args) -> int:
         candidates = get_locked_candidates(package_lock, bundle_args.extras, None)
         future = bundle(candidates)
         loop.run_until_complete(future)
+    if command == 'dump-env':
+        dump_env_parser.parse_args(args)
+
+        dump()
 
     return 0
 
