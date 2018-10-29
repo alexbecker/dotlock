@@ -101,6 +101,22 @@ Then you can lock and install your dependencies:
 
 For more information, run ``dotlock -h`` or ``dotlock [command] -h``.
 
+Developing in Different Environments
+------------------------------------
+
+If your development environment differs significantly from your target deployed environment,
+e.g. you use a different operating system or a different version of Python, you will have to
+do some extra work and lose some of the benefits of ``dotlock``.
+
+In order to resolve dependencies and select distributions correctly, ``dotlock`` needs to know
+certain features of the deployed environment. Run ``dotlock dump-env`` on the deployed environment
+to create an ``env.json`` file. This file should live alongside your ``package.json`` file, and
+will be used by ``dotlock lock``.
+
+Since ``package.lock.json`` contains only the distributions appropriate for your deployed environment,
+running ``dotlock install`` on an incompatible environment will error. Instead, you can run
+``dotlock install --skip-lock``, which will bypass ``package.lock.json``, looking just at ``package.json``.
+
 Deployment
 ----------
 
@@ -124,8 +140,6 @@ Roadmap and Limitations
 -----------------------
 
 Planned features:
-
-* Support/CI testing on non-linux platforms: target ``1.0.0``
 
 * Interpolate environment variables in ``sources``
 
