@@ -1,3 +1,10 @@
+0.7.0 (2018-10-28)
+------------------
+
+* Better support for developing on different environments
+
+* CI testing for OS X
+
 0.6.0 (2018-10-10)
 ------------------
 
