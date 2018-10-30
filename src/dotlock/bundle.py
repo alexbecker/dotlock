@@ -27,4 +27,4 @@ async def bundle(candidates: Sequence[CandidateInfo]):
         shutil.rmtree('bundle')
 
     install_script_path = str(Path(__file__).parent / Path('install.sh'))
-    shutil.copy(install_script_path, 'install.sh')
+    shutil.copy2(install_script_path, 'install.sh')
