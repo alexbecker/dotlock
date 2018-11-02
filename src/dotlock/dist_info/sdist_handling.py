@@ -15,7 +15,7 @@ from dotlock.tempdir import temp_working_dir
 logger = logging.getLogger(__name__)
 
 
-def run_setup():
+def run_setup(*args):
     """
     Like distutils.core.run_setup('setup.py', stop_after='config')
     except sets __name__ = '__main__' which some packages require.
@@ -25,7 +25,7 @@ def run_setup():
         A distutils.core.Distribution instance.
     """
     saved_argv = sys.argv[:]
-    sys.argv[0] = 'setup.py'
+    sys.argv[:] = ['setup.py', *args]
     distutils.core._setup_stop_after = 'config'
 
     try:
@@ -105,7 +105,7 @@ def get_local_package_requirements(candidate_name: str, package_dir: str) -> Lis
 
     try:
         # Parse setup.py and partially execute it.
-        distribution = run_setup()
+        distribution = run_setup('sdist')
     finally:
         sys.path.pop()
         os.chdir(old_cwd)
