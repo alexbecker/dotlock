@@ -1,3 +1,10 @@
+0.7.1 (2018-11-02)
+------------------
+
+* Fix builds for some packages including numpy
+
+* Fix install.sh script produced by ``dotlock bundle``
+
 0.7.0 (2018-10-28)
 ------------------
 
@@ -69,7 +76,6 @@ This is a minor release to fix some bugs in simple API handling:
 * Replace fatally flawed "activate" command with "run" command that works
 
 * Mypy incorporated into tox tests; outstanding issues fixed
-
 
 0.2.3 (2018-05-16)
 ------------------
