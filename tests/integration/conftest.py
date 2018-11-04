@@ -3,12 +3,6 @@ import pytest
 from dotlock import resolve
 
 
-def pytest_addoption(parser):
-    parser.addoption(
-        "--numpy", action="store_true", help="Run numpy tests (slow)."
-    )
-
-
 @pytest.fixture(name='aiohttp_resolved_requirements')
 async def resolve_aiohttp_requirements(event_loop):
     requirements = [
