@@ -6,7 +6,7 @@ from typing import Dict
 from packaging.markers import default_environment
 
 from dotlock._vendored.pep425tags import (
-    get_impl_tag, get_abi_tag, get_platform, is_manylinux1_compatible, get_impl_version_info,
+    get_abbr_impl, get_abi_tag, get_platform, is_manylinux1_compatible, get_impl_version_info,
 )
 
 
@@ -19,7 +19,7 @@ pep425tags: Dict[str, str] = {}
 
 def default_pep425tags():
     return {
-        'impl': get_impl_tag(),
+        'impl': get_abbr_impl(),
         'abi': get_abi_tag(),
         'platform': get_platform(),
         'manylinux1': is_manylinux1_compatible(),
