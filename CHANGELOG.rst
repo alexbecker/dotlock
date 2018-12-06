@@ -1,3 +1,8 @@
+0.7.2 (2018-12-06)
+------------------
+
+* Fix wheel compatibility checks, allowing more wheels to be installed
+
 0.7.1 (2018-11-02)
 ------------------
 
