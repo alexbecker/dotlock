@@ -25,16 +25,14 @@ def make_package_json(source, name, spec):
 @pytest.mark.parametrize('source,name,spec,version', [
     ('https://pypi.org/pypi', 'requests', '==2.18.4', '2.18.4'),
     ('https://pypi.org/pypi', 'numpy', '==1.15.3', '1.15.3'),
-    ('https://pypi.org/simple', 'requests','==2.18.3', '2.18.3'),
+    ('https://pypi.org/pypi', 'matplotlib', '==3.0.2', '3.0.2'),
+    ('https://pypi.org/simple', 'requests', '==2.18.3', '2.18.3'),
     ('https://pypi.org/pypi', 'requests', 'git+git://github.com/requests/requests@v2.19.1', '2.19.1'),
     ('https://pypi.org/pypi', 'requests', 'svn+https://github.com/requests/requests/trunk@6920', '2.19.0'),
     ('https://pypi.org/pypi', 'distlib', 'hg+https://hg.python.org/distlib@0.1.7', '0.1.7'),
     ('https://pypi.org/pypi', 'fakepkg', str(test_path / 'fakepkg'), '1.2.3'),
 ])
 def test_package(source, name, spec, version, tempdir, request):
-    if name == 'numpy' and not request.config.getoption('numpy'):
-        pytest.skip('Skipping numpy test because it is so slow.')
-
     make_package_json(source, name, spec)
 
     # Use --update to bypass the cache.

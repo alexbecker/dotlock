@@ -8,3 +8,4 @@ dist
 .cache/
 .tox/
 .mypy_cache
+__pycache__/

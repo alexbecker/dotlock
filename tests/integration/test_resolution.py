@@ -46,39 +46,43 @@ async def test_certbot():
         update=False,
     )
     candidates = resolve.candidate_topo_sort(requirements)
-    candidate_names = [candidate.info.name for candidate in candidates]
 
+    certbot = candidates[-1].info
+    assert certbot.name == 'certbot'
+    assert certbot.package_type == resolve.PackageType.bdist_wheel
+
+    candidate_names = [candidate.info.name for candidate in candidates]
     assert candidate_names == [
-        'setuptools',
-        'zope-interface',
-        'zope-hookable',
-        'zope-event',
-        'zope-deprecation',
-        'zope-proxy',
-        'zope-deferredimport',
-        'zope-component',
-        'pytz',
-        'pyrfc3339',
-        'future',
-        'parsedatetime',
-        'pbr',
-        'six',
-        'mock',
         'idna',
         'asn1crypto',
+        'six',
         'pycparser',
         'cffi',
         'cryptography',
         'pyopenssl',
+        'setuptools',
         'josepy',
-        'configobj',
-        'configargparse',
-        'certifi',
-        'urllib3',
+        'pbr',
+        'mock',
+        'pytz',
+        'pyrfc3339',
         'chardet',
+        'urllib3',
+        'certifi',
         'requests',
         'requests-toolbelt',
         'acme',
+        'configargparse',
+        'configobj',
+        'future',
+        'parsedatetime',
+        'zope-interface',
+        'zope-proxy',
+        'zope-deferredimport',
+        'zope-deprecation',
+        'zope-event',
+        'zope-hookable',
+        'zope-component',
         'certbot',
     ]
 

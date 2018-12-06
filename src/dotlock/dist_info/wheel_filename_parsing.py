@@ -49,7 +49,8 @@ def get_supported(version, platform, impl, abi, manylinux1, noarch=False):
             else:
                 # arch pattern didn't match (?!)
                 arches = [arch]
-        elif platform is None and manylinux1:
+        # DIFFERS FROM ORIGINAL: support manylinux1 even if platform is specified.
+        elif manylinux1:
             arches = [arch.replace('linux', 'manylinux1'), arch]
         else:
             arches = [arch]
