@@ -1,3 +1,8 @@
+0.7.4 (2018-12-10)
+------------------
+
+* Don't require ``package.json`` for commands that don't depend on it
+
 0.7.3 (2018-12-09)
 ------------------
 
