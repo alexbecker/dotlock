@@ -86,28 +86,16 @@ def _main(*args) -> int:
         init()
         return 0
 
-    package_json = PackageJSON.load('package.json')
     loop = asyncio.get_event_loop()
 
     if command == 'run':
         run_args = run_parser.parse_args(args)
         run(run_args.command, run_args.args)
-    if command == 'graph':
-        graph_args = graph_parser.parse_args(args)
-
-        future = package_json.resolve(update=graph_args.update)
-        loop.run_until_complete(future)
-        graph_resolution(package_json.default)
-    if command == 'lock':
-        lock_args = lock_parser.parse_args(args)
-
-        future = package_json.resolve(update=lock_args.update)
-        loop.run_until_complete(future)
-        write_package_lock(package_json)
     if command == 'install':
         install_args = install_parser.parse_args(args)
 
         if install_args.skip_lock:
+            package_json = PackageJSON.load('package.json')
             install_skip_lock(package_json, install_args.extras, install_args.only)
         else:
             package_lock = load_package_lock()
@@ -137,6 +125,20 @@ def _main(*args) -> int:
         dump_env_parser.parse_args(args)
 
         dump()
+
+    package_json = PackageJSON.load('package.json')
+    if command == 'graph':
+        graph_args = graph_parser.parse_args(args)
+
+        future = package_json.resolve(update=graph_args.update)
+        loop.run_until_complete(future)
+        graph_resolution(package_json.default)
+    if command == 'lock':
+        lock_args = lock_parser.parse_args(args)
+
+        future = package_json.resolve(update=lock_args.update)
+        loop.run_until_complete(future)
+        write_package_lock(package_json)
 
     return 0
 
