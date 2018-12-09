@@ -136,6 +136,15 @@ class RequirementInfo(namedtuple(
                 if self.specifier_type != SpecifierType.version or self.specifier.contains(c.version)
             ]
             if not candidate_infos:
+                # For pinned versions not found in cache, retry without the cache.
+                if cached and self.specifier_type == SpecifierType.version and str(self.specifier).startswith('=='):
+                    return await self.get_candidate_infos(
+                        package_types=package_types,
+                        sources=sources,
+                        connection=connection,
+                        session=session,
+                        update=True,
+                    )
                 raise NoMatchingCandidateError(self)
 
         return candidate_infos
