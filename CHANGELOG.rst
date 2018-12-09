@@ -1,3 +1,10 @@
+0.7.3 (2018-12-09)
+------------------
+
+* Check index when pinned versions aren't in cache, instead of raising
+
+* Reduce logging volume at default log level
+
 0.7.2 (2018-12-06)
 ------------------
 
