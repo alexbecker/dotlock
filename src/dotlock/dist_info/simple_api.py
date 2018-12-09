@@ -97,7 +97,7 @@ async def get_candidate_infos(
 
                 version = Version(parsed_filename.group('ver'))
         except InvalidVersion:
-            logger.warning('Skipping invalid version for file %s', filename)
+            logger.debug('Skipping invalid version for file %s', filename)
             continue
 
         candidate_infos.append(CandidateInfo(

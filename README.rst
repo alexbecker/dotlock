@@ -145,8 +145,6 @@ Planned features:
 
 * Allow specifying indices for individual packages
 
-* Allow updating individual packages with ``lock --update [package-names]``
-
 Features under consideration:
 
 * Support virtualenvs other than ``./venv``
