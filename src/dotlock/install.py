@@ -6,7 +6,7 @@ import logging
 import os.path
 from typing import Sequence
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, TCPConnector
 
 from dotlock.dist_info.dist_info import PackageType, CandidateInfo
 from dotlock.dist_info.vcs import clone
@@ -44,7 +44,8 @@ async def download(session: ClientSession, candidate: CandidateInfo):
 
 
 async def download_all(candidates: Sequence[CandidateInfo]):
-    async with ClientSession() as session:
+    connector = TCPConnector(limit_per_host=10)
+    async with ClientSession(connector=connector) as session:
         return await asyncio.gather(*[
             download(session, candidate) for candidate in candidates
         ])

@@ -222,7 +222,7 @@ async def resolve_requirements_list(
     """
     cache_connection = connect_to_cache()
     # Too many connections results in '(104) Connection reset by peer' errors.
-    connector = TCPConnector(limit=10)  # 10 is arbitrary; could probably be raised.
+    connector = TCPConnector(limit_per_host=10)  # 10 is arbitrary; could probably be raised.
     async with ClientSession(connector=connector) as session:
         await _resolve_requirement_list(
             package_types=package_types,
