@@ -125,17 +125,17 @@ def _main(*args) -> int:
         dump_env_parser.parse_args(args)
 
         dump()
-
-    package_json = PackageJSON.load('package.json')
     if command == 'graph':
         graph_args = graph_parser.parse_args(args)
 
+        package_json = PackageJSON.load('package.json')
         future = package_json.resolve(update=graph_args.update)
         loop.run_until_complete(future)
         graph_resolution(package_json.default)
     if command == 'lock':
         lock_args = lock_parser.parse_args(args)
 
+        package_json = PackageJSON.load('package.json')
         future = package_json.resolve(update=lock_args.update)
         loop.run_until_complete(future)
         write_package_lock(package_json)

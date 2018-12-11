@@ -1,0 +1,208 @@
+{
+    "default": [
+        {
+            "hash_alg": "sha256",
+            "hash_val": "ca4be454458f9dec299268d472aaa5a11f67a4ff70093396e1ceae9c76cf4bbb",
+            "location": "https://files.pythonhosted.org/packages/3a/e1/5f9023cc983f1a628a8c2fd051ad19e76ff7b142a0faf329336f9a62a514/attrs-18.2.0-py2.py3-none-any.whl",
+            "name": "attrs",
+            "package_type": "bdist_wheel",
+            "source": "https://pypi.org/pypi",
+            "version": "18.2.0"
+        },
+        {
+            "hash_alg": "sha256",
+            "hash_val": "fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691",
+            "location": "https://files.pythonhosted.org/packages/bc/a9/01ffebfb562e4274b6487b4bb1ddec7ca55ec7510b22e4c51f14098443b8/chardet-3.0.4-py2.py3-none-any.whl",
+            "name": "chardet",
+            "package_type": "bdist_wheel",
+            "source": "https://pypi.org/pypi",
+            "version": "3.0.4"
+        },
+        {
+            "hash_alg": "sha256",
+            "hash_val": "3c11e92c3dfc321014e22fb442bc9eb70e01af30d6ce442026b0c35723448c66",
+            "location": "https://files.pythonhosted.org/packages/b3/5f/5c29cde8511c95fad045b9ecaf2e76f0da18761e8363a82594f5a58c2ced/multidict-4.4.2.tar.gz",
+            "name": "multidict",
+            "package_type": "sdist",
+            "source": "https://pypi.org/pypi",
+            "version": "4.4.2"
+        },
+        {
+            "hash_alg": "sha256",
+            "hash_val": "9093db5b8ddbe4b8f6885d1a6e0ad84ae3155464cbf6877c387605244c285f3c",
+            "location": "https://files.pythonhosted.org/packages/1d/b9/213521db2918b5b7f7df333a33ea3d38ba70ba705d9db6c29f0343c213ea/async_timeout-2.0.1-py3-none-any.whl",
+            "name": "async-timeout",
+            "package_type": "bdist_wheel",
+            "source": "https://pypi.org/pypi",
+            "version": "2.0.1"
+        },
+        {
+            "hash_alg": "sha256",
+            "hash_val": "156a6814fb5ac1fc6850fb002e0852d56c0c8d2531923a51032d1b70760e186e",
+            "location": "https://files.pythonhosted.org/packages/4b/2a/0276479a4b3caeb8a8c1af2f8e4355746a97fab05a372e4a2c6a6b876165/idna-2.7-py2.py3-none-any.whl",
+            "name": "idna",
+            "package_type": "bdist_wheel",
+            "source": "https://pypi.org/pypi",
+            "version": "2.7"
+        },
+        {
+            "hash_alg": "sha256",
+            "hash_val": "c8cbc21bbfa1dd7d5386d48cc814fe3d35b80f60299cdde9279046f399c3b0d8",
+            "location": "https://files.pythonhosted.org/packages/43/b8/057c3e5b546ff4b24263164ecda13f6962d85c9dc477fcc0bcdcb3adb658/yarl-1.2.6.tar.gz",
+            "name": "yarl",
+            "package_type": "sdist",
+            "source": "https://pypi.org/pypi",
+            "version": "1.2.6"
+        },
+        {
+            "hash_alg": "sha256",
+            "hash_val": "9fcef0489e3335b200d31a9c1fb6ba80fdafe14cd82b971168c2f9fa1e4508ad",
+            "location": "https://files.pythonhosted.org/packages/d1/01/70773afaf252a17a4fceb6a3ac815d2a490d67226832b05eaf0f49d6ac50/aiohttp-3.1.3.tar.gz",
+            "name": "aiohttp",
+            "package_type": "sdist",
+            "source": "https://pypi.org/pypi",
+            "version": "3.1.3"
+        }
+    ],
+    "environment": {
+        "implementation_name": "cpython",
+        "implementation_version": "3.7.0",
+        "os_name": "posix",
+        "platform_machine": "x86_64",
+        "platform_python_implementation": "CPython",
+        "platform_release": "4.17.14-arch1-1-ARCH",
+        "platform_system": "Linux",
+        "platform_version": "#1 SMP PREEMPT Thu Aug 9 11:56:50 UTC 2018",
+        "python_full_version": "3.7.0",
+        "python_version": "3.7",
+        "sys_platform": "linux"
+    },
+    "extras": {
+        "tests": [
+            {
+                "hash_alg": "sha256",
+                "hash_val": "ca4be454458f9dec299268d472aaa5a11f67a4ff70093396e1ceae9c76cf4bbb",
+                "location": "https://files.pythonhosted.org/packages/3a/e1/5f9023cc983f1a628a8c2fd051ad19e76ff7b142a0faf329336f9a62a514/attrs-18.2.0-py2.py3-none-any.whl",
+                "name": "attrs",
+                "package_type": "bdist_wheel",
+                "source": "https://pypi.org/pypi",
+                "version": "18.2.0"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691",
+                "location": "https://files.pythonhosted.org/packages/bc/a9/01ffebfb562e4274b6487b4bb1ddec7ca55ec7510b22e4c51f14098443b8/chardet-3.0.4-py2.py3-none-any.whl",
+                "name": "chardet",
+                "package_type": "bdist_wheel",
+                "source": "https://pypi.org/pypi",
+                "version": "3.0.4"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "3c11e92c3dfc321014e22fb442bc9eb70e01af30d6ce442026b0c35723448c66",
+                "location": "https://files.pythonhosted.org/packages/b3/5f/5c29cde8511c95fad045b9ecaf2e76f0da18761e8363a82594f5a58c2ced/multidict-4.4.2.tar.gz",
+                "name": "multidict",
+                "package_type": "sdist",
+                "source": "https://pypi.org/pypi",
+                "version": "4.4.2"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "9093db5b8ddbe4b8f6885d1a6e0ad84ae3155464cbf6877c387605244c285f3c",
+                "location": "https://files.pythonhosted.org/packages/1d/b9/213521db2918b5b7f7df333a33ea3d38ba70ba705d9db6c29f0343c213ea/async_timeout-2.0.1-py3-none-any.whl",
+                "name": "async-timeout",
+                "package_type": "bdist_wheel",
+                "source": "https://pypi.org/pypi",
+                "version": "2.0.1"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "156a6814fb5ac1fc6850fb002e0852d56c0c8d2531923a51032d1b70760e186e",
+                "location": "https://files.pythonhosted.org/packages/4b/2a/0276479a4b3caeb8a8c1af2f8e4355746a97fab05a372e4a2c6a6b876165/idna-2.7-py2.py3-none-any.whl",
+                "name": "idna",
+                "package_type": "bdist_wheel",
+                "source": "https://pypi.org/pypi",
+                "version": "2.7"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "c8cbc21bbfa1dd7d5386d48cc814fe3d35b80f60299cdde9279046f399c3b0d8",
+                "location": "https://files.pythonhosted.org/packages/43/b8/057c3e5b546ff4b24263164ecda13f6962d85c9dc477fcc0bcdcb3adb658/yarl-1.2.6.tar.gz",
+                "name": "yarl",
+                "package_type": "sdist",
+                "source": "https://pypi.org/pypi",
+                "version": "1.2.6"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "9fcef0489e3335b200d31a9c1fb6ba80fdafe14cd82b971168c2f9fa1e4508ad",
+                "location": "https://files.pythonhosted.org/packages/d1/01/70773afaf252a17a4fceb6a3ac815d2a490d67226832b05eaf0f49d6ac50/aiohttp-3.1.3.tar.gz",
+                "name": "aiohttp",
+                "package_type": "sdist",
+                "source": "https://pypi.org/pypi",
+                "version": "3.1.3"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "e76826342cefe3c3d5f7e8ee4316b80d1dd8a300781612ddbc765c17ba25a6c6",
+                "location": "https://files.pythonhosted.org/packages/3e/c7/3da685ef117d42ac8d71af525208759742dd235f8094221fdaafcd3dba8f/py-1.7.0-py2.py3-none-any.whl",
+                "name": "py",
+                "package_type": "bdist_wheel",
+                "source": "https://pypi.org/pypi",
+                "version": "1.7.0"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "832dc0e10feb1aa2c68dcc57dbb658f1c7e65b9b61af69048abc87a2db00a0eb",
+                "location": "https://files.pythonhosted.org/packages/67/4b/141a581104b1f6397bfa78ac9d43d8ad29a7ca43ea90a2d863fe3056e86a/six-1.11.0-py2.py3-none-any.whl",
+                "name": "six",
+                "package_type": "bdist_wheel",
+                "source": "https://pypi.org/pypi",
+                "version": "1.11.0"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "ce4137d58b444bac11a31d4e0c1805c69d89e8ed4e91fde1999674ecc2f6f9ff",
+                "location": "https://files.pythonhosted.org/packages/96/06/c8ee69628191285ddddffb277bd5abdf769166e7a14b867c2a172f0175b1/setuptools-40.4.3-py2.py3-none-any.whl",
+                "name": "setuptools",
+                "package_type": "bdist_wheel",
+                "source": "https://pypi.org/pypi",
+                "version": "40.4.3"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "e160a7fcf25762bb60efc7e171d4497ff1d8d2d75a3d0df7a21b76821ecbf5c5",
+                "location": "https://files.pythonhosted.org/packages/ba/65/ded3bc40bbf8d887f262f150fbe1ae6637765b5c9534bd55690ed2c0b0f7/pluggy-0.6.0-py3-none-any.whl",
+                "name": "pluggy",
+                "package_type": "bdist_wheel",
+                "source": "https://pypi.org/pypi",
+                "version": "0.6.0"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "062027955bccbc04d2fcd5d79690947e018ba31abe4c90b2c6721abec734261b",
+                "location": "https://files.pythonhosted.org/packages/f1/5c/411ceafef3b5e5486d16f174db18dc26f49e7704dbf59ef488e95db47339/pytest-3.4.2-py2.py3-none-any.whl",
+                "name": "pytest",
+                "package_type": "bdist_wheel",
+                "source": "https://pypi.org/pypi",
+                "version": "3.4.2"
+            },
+            {
+                "hash_alg": "sha256",
+                "hash_val": "0b9b660b146a65e1313e2083d0d2e1f63047797354af9a28d6b7c9f0726fa33d",
+                "location": "https://files.pythonhosted.org/packages/c9/2f/34f8581a799d1e58f0b64d9eb4aa0864b53f520d160281c2eb692340fefc/pytest_aiohttp-0.3.0-py3-none-any.whl",
+                "name": "pytest-aiohttp",
+                "package_type": "bdist_wheel",
+                "source": "https://pypi.org/pypi",
+                "version": "0.3.0"
+            }
+        ]
+    },
+    "pep425tags": {
+        "abi": "cp37m",
+        "impl": "cp",
+        "manylinux1": true,
+        "platform": "linux_x86_64",
+        "version": "3.7"
+    }
+}
