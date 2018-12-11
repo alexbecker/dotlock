@@ -1,9 +1,16 @@
-0.7.4 (2018-12-10)
+0.7.5 (2018-12-10)
 ------------------
 
-* Don't require ``package.json`` for commands that don't depend on it
+* Limit simultaneous connections on download, not just during resolution
 
-0.7.3 (2018-12-09)
+* (fixed) Don't require ``package.json`` for commands that don't depend on it
+
+0.7.4 (2018-12-09)
+------------------
+
+* (broken) Don't require ``package.json`` for commands that don't depend on it
+
+0.7.3 (2018-12-08)
 ------------------
 
 * Check index when pinned versions aren't in cache, instead of raising
