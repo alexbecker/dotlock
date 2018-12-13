@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 
 import pytest
 
@@ -32,7 +33,10 @@ def make_package_json(source, name, spec):
     ('https://pypi.org/pypi', 'distlib', 'hg+https://hg.python.org/distlib@0.1.7', '0.1.7'),
     ('https://pypi.org/pypi', 'fakepkg', str(test_path / 'fakepkg'), '1.2.3'),
 ])
-def test_package(source, name, spec, version, tempdir, request):
+def test_package(source, name, spec, version, tempdir):
+    if sys.platform == 'darwin' and name == 'matplotlib':
+        pytest.skip('Skipping package which pip cannot install directly on OS X.')
+
     make_package_json(source, name, spec)
 
     # Use --update to bypass the cache.
