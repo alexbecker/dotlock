@@ -8,8 +8,8 @@ matrix:
           sudo: true
         # Testing Python 3 on OS X is a pain.
         - language: generic
-          python: 3.6
           os: osx
+          env: TOXENV=py36 # https://github.com/tox-dev/tox-travis/issues/25
 before_install:
     - ./before_install.sh
 script: tox
