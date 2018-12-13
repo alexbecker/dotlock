@@ -149,6 +149,8 @@ Features under consideration:
 
 * Support virtualenvs other than ``./venv``
 
+* Support installing into system python (useful in certain contexts, e.g. containers)
+
 * Support versions of Python before 3.6
 
 * Support locking for other platforms. This is not possible to do with perfect reliability,

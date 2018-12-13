@@ -7,6 +7,7 @@ import virtualenv
 
 from dotlock.__main__ import _main
 from dotlock.install import install
+from dotlock.package_lock import load_package_lock, check_lock_environment, LockEnvironmentMismatch
 from dotlock.resolve import candidate_topo_sort
 
 
@@ -31,6 +32,12 @@ async def test_aiohttp(aiohttp_resolved_requirements, tempdir, venv):
 def test_install_from_lock(tempdir, venv):
     testfile_path = str(Path(__file__).parent / Path('package.lock.json'))
     shutil.copy(testfile_path, 'package.lock.json')
+
+    package_lock = load_package_lock()
+    try:
+        check_lock_environment(package_lock)
+    except LockEnvironmentMismatch:
+        pytest.skip("Skipping because test environment does not support test's package.lock.json.")
 
     _main('install')
 
