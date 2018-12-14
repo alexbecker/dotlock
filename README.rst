@@ -6,6 +6,8 @@ dotlock
 
 Fast and safe dependency management for Python applications.
 
+Supports Linux and OS X.
+
 Motivation
 ----------
 
@@ -22,24 +24,23 @@ in ``package.json``, and generate repeatable requirement sets in ``package.lock.
 by running a single command: ``dotlock lock``.
 
 Dotlock is partly inspired by `pipenv <https://pypi.org/project/pipenv/>`_, which also provides
-dependency-locking functionality. However, dotlock attempts to improve over ``pipenv`` in
-the following ways:
+dependency-locking functionality. However, dotlock has a different philosophy: instead of acting as a wrapper
+around pip, dotlock handles package resolution natively. This gives dotlock more flexibility, better performance,
+and a smaller surface area for bugs, but at the cost of the wide platform and package support the pip developers have
+put so much work into. This should make dotlock better for deploying to common environments such as linux servers
+with common packages, but there will always be edge cases of platforms or packages it does not support.
 
-* Accuracy: ``pipenv`` only locks to the level of versions, not specific distributions.
-  This is why a ``Pipfile.lock`` will often contain multiple hashes for the same dependency,
-  and means you do not know exactly what distribution will be installed when you run ``pipenv lock``.
+Dotlock's main goals are:
 
-* Speed: ``pipenv lock`` is very slow in my experience.
+* Accuracy: ``dotlock lock`` locks to the level of specific distributions, not just versions.
+  That means you know exactly what code will be installed by ``dotlock install``, and ``package.lock.json``
+  will contain a single hash for each package. You can even vendor your dependencies with ``dotlock bundle``.
 
-* Reliability: ``pipenv`` does a lot of stuff, but it also has a lot of bugs.
+* Speed: ``dotlock lock`` uses caching and asyncio to re-lock after changes to ``package.lock`` in 1s or less.
+  Similarly, ``dotlock install`` and ``dotlock bundle`` download dependencies in parallel.
 
-* Extras Support: ``pipenv`` only supports "default" dependencies and "dev" dependencies;
+* Extras Support: Unlike pipenv which only supports "default" dependencies and "dev" dependencies,
   ``dotlock`` supports arbitrary extra dependency groups, e.g. ``dotlock install --extras tests``.
-
-Under the hood, ``pipenv`` is essentially a complicated wrapper for ``pip``, relying on it
-for metadata discovery and extraction, dependency resolution, dependency downloading and installation.
-To improve on ``pipenv``, ``dotlock`` handles most of these itself, relying on ``pip`` only to install
-already-downloaded dependencies.
 
 Installation
 ------------
