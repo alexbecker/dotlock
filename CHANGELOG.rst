@@ -1,3 +1,10 @@
+0.7.7 (2019-01-10)
+------------------
+
+* Fixed installing local dependencies with relative paths.
+
+* Improved warnings on platforms that do not match ``env.json``.
+
 0.7.6 (2018-12-30)
 ------------------
 
