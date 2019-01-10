@@ -34,13 +34,20 @@ def load():
         with env_file.open() as fp:
             override = json.load(fp)
         environment.update(override['environment'])
-        if environment != default_environment():
-            logger.warning('%s does not match environment. Dependency resolution for sdists may be inaccurate.')
-        pep425tags.update(override['pep425tags'])
-        if pep425tags != default_pep425tags():
+        platform_environment = default_environment()
+        diff_keys = [key for key, value in environment.items() if value != platform_environment[key]]
+        if diff_keys:
             logger.warning(
-                '%s does not match PEP425 tags for your environment. '
-                'Dependency resolution for sdists may be inaccurate.'
+                'Platform env values %s do not match env file. Dependency resolution for sdists may be inaccurate.',
+                ', '.join(diff_keys),
+            )
+        pep425tags.update(override['pep425tags'])
+        platform_pep425tags = default_pep425tags()
+        diff_keys = [key for key, value in pep425tags.items() if value != platform_pep425tags[key]]
+        if diff_keys:
+            logger.warning(
+                'Platform PEP425 tags %s do not match env file. Dependency resolution for sdists may be inaccurate.',
+                ', '.join(diff_keys),
             )
 
 
