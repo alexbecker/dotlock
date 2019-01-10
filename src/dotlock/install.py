@@ -52,7 +52,8 @@ async def download_all(candidates: Sequence[CandidateInfo]):
 
 
 async def install(candidates: Sequence[CandidateInfo]):
-    python_path = os.path.join(os.getcwd(), 'venv', 'bin', 'python')
+    install_dir = os.getcwd()
+    python_path = os.path.join(install_dir, 'venv', 'bin', 'python')
 
     with temp_working_dir('install'):
         await download_all(candidates)
@@ -73,6 +74,9 @@ async def install(candidates: Sequence[CandidateInfo]):
                 target_name = f'./{candidate.name}'
             elif candidate.package_type == PackageType.local:
                 target_name = candidate.location
+                if not os.path.isabs(target_name):
+                    # Relative path dependencies were probably specified relative to where we're installing.
+                    target_name = os.path.join(install_dir, target_name)
             else:
                 # We can't just use candidate.name as the package name because
                 # pip won't find the file if its (potentially non-canonical) name
