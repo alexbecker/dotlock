@@ -1,4 +1,5 @@
 from typing import Dict, List, Optional
+from urllib.parse import urlparse, urljoin
 import logging
 
 from aiohttp import ClientSession
@@ -59,6 +60,11 @@ async def get_candidate_infos(
                 logger.debug('Skipping package type %s for %s', package_type.name, name)
                 continue
 
+            candidate_url = urlparse(distribution['url'])
+            if candidate_url.hostname is None:
+                # Convert the relative URL to an absolute URL
+                candidate_url = urlparse(urljoin(source, candidate_url.geturl()))
+
             for hash_alg in hash_algorithms:
                 hash_val = distribution['digests'].get(hash_alg)
                 if hash_val:
@@ -71,7 +77,7 @@ async def get_candidate_infos(
                 version=version,
                 package_type=package_type,
                 source=source,
-                location=distribution['url'],
+                location=candidate_url.geturl(),
                 hash_alg=hash_alg,
                 hash_val=hash_val,
             ))
