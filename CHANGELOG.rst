@@ -1,3 +1,8 @@
+0.8.0 (2019-02-28)
+------------------
+
+* Add `install --no-venv` flag to install into system python
+
 0.7.7 (2019-01-10)
 ------------------
 
