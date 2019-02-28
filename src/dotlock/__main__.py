@@ -53,6 +53,10 @@ install_parser.add_argument(
     '--skip-lock', action='store_true', default=False,
     help='Install dependencies directly from package.json instead of package.lock.json.',
 )
+install_parser.add_argument(
+    '--no-venv', action='store_true', default=False,
+    help='Install dependencies directly into system python.',
+)
 install_parser.add_argument('--extras', nargs='+', default=[])
 install_parser.add_argument(
     '--only', nargs='+',
@@ -111,7 +115,7 @@ def _main(*args) -> int:
                     e.env_key, e.env_value, e.locked_value,
                 )
             candidates = get_locked_candidates(package_lock, install_args.extras, install_args.only)
-            future = install(candidates)
+            future = install(candidates, install_args.no_venv)
             loop.run_until_complete(future)
     if command == 'bundle':
         bundle_args = bundle_parser.parse_args(args)

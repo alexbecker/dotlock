@@ -51,9 +51,9 @@ async def download_all(candidates: Sequence[CandidateInfo]):
         ])
 
 
-async def install(candidates: Sequence[CandidateInfo]):
+async def install(candidates: Sequence[CandidateInfo], no_venv: bool):
     install_dir = os.getcwd()
-    python_path = os.path.join(install_dir, 'venv', 'bin', 'python')
+    python_path = 'python' if no_venv else os.path.join(install_dir, 'venv', 'bin', 'python')
 
     with temp_working_dir('install'):
         await download_all(candidates)

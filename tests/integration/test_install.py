@@ -19,7 +19,7 @@ def setup_venv():
 @pytest.mark.asyncio
 async def test_aiohttp(aiohttp_resolved_requirements, tempdir, venv):
     candidate_infos = [candidate.info for candidate in candidate_topo_sort(aiohttp_resolved_requirements)]
-    await install(candidate_infos)
+    await install(candidate_infos, no_venv=False)
 
     # Get the list of installed packages via pip freeze.
     pip_freeze = subprocess.run(['dotlock', 'run', 'pip', 'freeze'], stdout=subprocess.PIPE)
