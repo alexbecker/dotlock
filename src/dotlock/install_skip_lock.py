@@ -33,5 +33,16 @@ def install_skip_lock(package_json: PackageJSON, extras: Iterable[str], name_fil
         if name_filter is None or requirement.info.name in name_filter
     ]
 
+    # Need to convert JSON-API sources into simple sources for pip
+    sources = [
+        (source[:-4] + 'simple') if source.endswith('pypi') else source
+        for source in package_json.sources
+    ]
+    index_urls = ['--index-url', sources[0]]
+    for source in sources[1:]:
+        index_urls.extend(['--extra-index-url', source])
+
     python_path = os.path.join(os.getcwd(), 'venv', 'bin', 'python')
-    subprocess.run([python_path, '-m', 'pip', 'install', *pip_format_reqs(reqs)])
+    subprocess.run([
+        python_path, '-m', 'pip', 'install', *index_urls, *pip_format_reqs(reqs),
+    ])
