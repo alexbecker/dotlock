@@ -1,3 +1,10 @@
+0.8.1 (2019-03-01)
+------------------
+
+* Fix handling of relative URLs in JSON API
+
+* Include sources other than PyPI when running `install --skip-lock`
+
 0.8.0 (2019-02-28)
 ------------------
 
