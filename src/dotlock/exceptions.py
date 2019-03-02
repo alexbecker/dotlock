@@ -18,6 +18,19 @@ class CircularDependencyError(PackageResolutionError):
         self.dependency_chain = dependency_chain
 
 
+class RequirementConflictError(PackageResolutionError):
+    def __init__(self, requirements):
+        self.requirements = requirements
+
+        name = requirements[0].info.name
+        msg = f'Confict during first-pass resolution of {name}:'
+        for req in requirements:
+            specifier = req.info.specifier
+            chain = '<-'.join(ancestor.info.name for ancestor in req.ancestors())
+            msg += f'\n{specifier} via {chain}'
+        super().__init__(msg)
+
+
 class LockEnvironmentMismatch(PackageResolutionError):
     def __init__(self, env_key, locked_value, env_value):
         self.env_key = env_key

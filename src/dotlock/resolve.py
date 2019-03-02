@@ -5,11 +5,10 @@ import logging
 import asyncio
 
 from aiohttp import ClientSession, TCPConnector
-from packaging.specifiers import SpecifierSet
 
 from dotlock.dist_info.caching import connect_to_cache
 from dotlock.dist_info.dist_info import PackageType, RequirementInfo, CandidateInfo
-from dotlock.exceptions import CircularDependencyError
+from dotlock.exceptions import CircularDependencyError, RequirementConflictError
 
 
 logger = logging.getLogger(__name__)
@@ -104,13 +103,13 @@ class Candidate:
             self.requirements[requirement_info] = requirement
 
 
-def _iter_live_specifiers(base_requirements: Iterable[Requirement], name: str) -> Iterable[SpecifierSet]:
+def _iter_live_requirements(base_requirements: Iterable[Requirement], name: str) -> Iterable[Requirement]:
     for requirement in base_requirements:
         if requirement.info.name == name:
-            yield requirement.info.specifier
+            yield requirement
         for candidate in requirement.candidates.values():
             if candidate.live:
-                yield from _iter_live_specifiers(candidate.requirements.values(), name)
+                yield from _iter_live_requirements(candidate.requirements.values(), name)
 
 
 def _iter_live_candidates(base_requirements: Iterable[Requirement], name: str) -> Iterable[Candidate]:
@@ -157,13 +156,17 @@ async def _resolve_requirement_list(
                               live_candidate_info, requirement)
 
                 # Filter down to candidates that satisfy all requirements for the current name.
-                specifier = requirement.info.specifier
-                for s in _iter_live_specifiers(base_requirements, requirement.info.name):
-                    specifier &= s
-                candidate_infos = [c for c in requirement.candidates if specifier.contains(c.version)]
+                requirements = list(_iter_live_requirements(base_requirements, requirement.info.name))
+                candidate_infos = [
+                    c for c in requirement.candidates
+                    if all(req.info.specifier.contains(c.version) for req in requirements)
+                ]
                 if not candidate_infos:
-                    # FIXME: handle single-pass failures
-                    raise Exception(f'Single pass failed on {requirement.info} (rejected existing {live_candidate_info})')
+                    # We could attempt to handle single-pass resolution failures by backtracking,
+                    # but that would be slow and result in a brittle resolution. Instead we report
+                    # the error as clearly as possible to the user so they can update their constraints
+                    # to explicitly avoid the conflict.
+                    raise RequirementConflictError(requirements)
 
                 # Select a single acceptable candidate, defaulting to the highest version and package_type.
                 # TODO: allow different resolution strategies

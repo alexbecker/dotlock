@@ -5,7 +5,7 @@ from packaging.version import Version
 
 from dotlock.dist_info.caching import set_cached_candidate_infos, set_cached_requirement_infos
 from dotlock.dist_info.dist_info import PackageType, RequirementInfo, CandidateInfo
-from dotlock.exceptions import CircularDependencyError
+from dotlock.exceptions import CircularDependencyError, RequirementConflictError
 from dotlock.package_json import parse_requirements
 from dotlock.resolve import _resolve_requirement_list, candidate_topo_sort
 
@@ -147,3 +147,44 @@ async def test_circular_dependency(cache_connection):
             session=None,
             update=False,
         )
+
+
+@pytest.mark.asyncio
+async def test_requirement_conflict(cache_connection):
+    requirements = parse_requirements({
+        # Based on a real example: https://github.com/PyCQA/astroid/issues/652
+        'mypy': '*',
+        'typed-ast': '<1.3.0'
+    })
+    make_index_cache(cache_connection, {
+        'mypy': {
+            '1.0': {
+                PackageType.bdist_wheel: {
+                    'typed-ast': '>=1.3.1',
+                }
+            }
+        },
+        'typed-ast': {
+            '1.2.0': {
+                PackageType.bdist_wheel: {}
+            },
+            '1.3.1': {
+                PackageType.bdist_wheel: {}
+            }
+        },
+    })
+
+    with pytest.raises(RequirementConflictError) as exc_info:
+        await _resolve_requirement_list(
+            package_types=[PackageType.bdist_wheel, PackageType.sdist],
+            sources=['https://pypi.org/pypi'],
+            base_requirements=requirements,
+            requirements=requirements,
+            connection=cache_connection,
+            session=None,
+            update=False,
+        )
+
+    msg = str(exc_info.value)
+    assert '>=1.3.1 via typed-ast<-mypy' in msg
+    assert '<1.3.0 via typed-ast' in msg
