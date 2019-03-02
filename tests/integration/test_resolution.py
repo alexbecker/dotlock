@@ -52,7 +52,6 @@ async def test_certbot():
 
     candidate_names = [candidate.info.name for candidate in candidates]
     assert candidate_names == [
-        'idna',
         'asn1crypto',
         'six',
         'pycparser',
@@ -66,6 +65,7 @@ async def test_certbot():
         'pytz',
         'pyrfc3339',
         'chardet',
+        'idna',
         'urllib3',
         'certifi',
         'requests',
